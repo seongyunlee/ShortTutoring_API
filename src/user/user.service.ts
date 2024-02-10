@@ -4,7 +4,7 @@ import { QuestionRepository } from '../question/question.repository';
 import { RedisRepository } from '../redis/redis.repository';
 import { Fail, Success } from '../response';
 import { TutoringRepository } from '../tutoring/tutoring.repository';
-import { UploadRepository } from '../upload/upload.repository';
+import { UploadService } from '../upload/upload.service';
 import { CreateStudentDto, CreateTeacherDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -25,7 +25,7 @@ export class UserService {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly userRepository: UserRepository,
-    private readonly uploadRepository: UploadRepository,
+    private readonly uploadRepository: UploadService,
     private readonly redisRepository: RedisRepository,
     private readonly tutoringRepository: TutoringRepository,
     private readonly questionRepository: QuestionRepository,

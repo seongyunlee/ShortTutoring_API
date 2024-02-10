@@ -4,7 +4,7 @@ import { ChattingStatus } from '../chatting/entities/chatting.interface';
 import { QuestionRepository } from '../question/question.repository';
 import { Fail, Success } from '../response';
 import { SocketRepository } from '../socket/socket.repository';
-import { UploadRepository } from '../upload/upload.repository';
+import { UploadService } from '../upload/upload.service';
 import { UserRepository } from '../user/user.repository';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ClassroomInfo, TutoringInfo } from './entities/tutoring.entity';
@@ -20,7 +20,7 @@ export class TutoringService {
     private readonly socketRepository: SocketRepository,
     private readonly userRepository: UserRepository,
     private readonly chattingRepository: ChattingRepository,
-    private readonly uploadRepository: UploadRepository,
+    private readonly uploadRepository: UploadService,
   ) {}
 
   async finish(tutoringId: string) {

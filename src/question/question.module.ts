@@ -1,7 +1,7 @@
 import { ChattingRepository } from '../chatting/chatting.repository';
 import { dynamooseModule } from '../config.dynamoose';
 import { SocketModule } from '../socket/socket.module';
-import { UploadRepository } from '../upload/upload.repository';
+import { UploadService } from '../upload/upload.service';
 import { UserRepository } from '../user/user.repository';
 import { QuestionController } from './question.controller';
 import { QuestionRepository } from './question.repository';
@@ -15,7 +15,7 @@ import { Module } from '@nestjs/common';
     QuestionService,
     QuestionRepository,
     UserRepository,
-    UploadRepository,
+    UploadService,
     ChattingRepository,
   ],
   exports: [QuestionRepository],

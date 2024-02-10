@@ -4,7 +4,7 @@ import { dynamooseModule } from '../config.dynamoose';
 import { QuestionRepository } from '../question/question.repository';
 import { RedisModule } from '../redis/redis.module';
 import { TutoringRepository } from '../tutoring/tutoring.repository';
-import { UploadRepository } from '../upload/upload.repository';
+import { UploadService } from '../upload/upload.service';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
@@ -16,7 +16,7 @@ import { Module } from '@nestjs/common';
   providers: [
     UserService,
     UserRepository,
-    UploadRepository,
+    UploadService,
     TutoringRepository,
     QuestionRepository,
   ],

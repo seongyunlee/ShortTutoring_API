@@ -5,7 +5,7 @@ import { MessageBuilder } from 'discord-webhook-node';
 import * as process from 'process';
 
 @Injectable()
-export class UploadRepository {
+export class UploadService {
   /**
    base64로 인코딩된 이미지를 S3에 업로드합니다.
    @param path S3에 업로드할 경로
