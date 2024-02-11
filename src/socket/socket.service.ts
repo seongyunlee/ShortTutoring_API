@@ -9,7 +9,7 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { Server } from 'socket.io';
 
 @Injectable()
-export class SocketRepository {
+export class SocketService {
   @WebSocketServer()
   server: Server;
 

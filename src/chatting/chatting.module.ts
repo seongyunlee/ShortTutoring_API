@@ -8,13 +8,7 @@ import { ChattingService } from './chatting.service';
 import { Module } from '@nestjs/common';
 
 @Module({
-  imports: [
-    dynamooseModule,
-    ChattingModule,
-    AgoraModule,
-    UserModule,
-    SocketModule,
-  ],
+  imports: [dynamooseModule, AgoraModule, UserModule, SocketModule],
   controllers: [ChattingController],
   providers: [ChattingService, ChattingRepository],
   exports: [ChattingRepository],

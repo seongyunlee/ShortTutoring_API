@@ -5,17 +5,17 @@ import { redisSubProvider } from '../config.redis';
 import { RedisModule } from '../redis/redis.module';
 import { UserModule } from '../user/user.module';
 import { SocketGateway } from './socket.gateway';
-import { SocketRepository } from './socket.repository';
+import { SocketService } from './socket.service';
 import { Module } from '@nestjs/common';
 
 @Module({
   imports: [dynamooseModule, RedisModule, AuthModule, UserModule],
   providers: [
-    SocketRepository,
+    SocketService,
     SocketGateway,
     redisSubProvider,
     ChattingRepository,
   ],
-  exports: [SocketRepository],
+  exports: [SocketService],
 })
 export class SocketModule {}

@@ -1,6 +1,6 @@
 import { socketErrorWebhook, webhook } from '../config.discord-webhook';
 import { RedisRepository } from '../redis/redis.repository';
-import { SocketRepository } from './socket.repository';
+import { SocketService } from './socket.service';
 import { Inject } from '@nestjs/common';
 import {
   SubscribeMessage,
@@ -18,7 +18,7 @@ export class SocketGateway {
 
   constructor(
     private readonly redisRepository: RedisRepository,
-    private readonly socketRepository: SocketRepository,
+    private readonly socketService: SocketService,
     @Inject('REDIS_SUB') private redisSub: RedisClientType,
   ) {}
 
@@ -28,7 +28,7 @@ export class SocketGateway {
    */
   async handleConnection(client: any) {
     try {
-      const user = await this.socketRepository.getUserFromAuthorization(
+      const user = await this.socketService.getUserFromAuthorization(
         client.handshake.headers,
       );
 
@@ -60,7 +60,7 @@ export class SocketGateway {
    */
   async handleDisconnect(client: any) {
     try {
-      const user = await this.socketRepository.getUserFromAuthorization(
+      const user = await this.socketService.getUserFromAuthorization(
         client.handshake.headers,
       );
 
@@ -85,7 +85,7 @@ export class SocketGateway {
   async handleMessage(client: any, payload: any) {
     const { receiverId, chattingId, format, body } = payload;
 
-    const sender = await this.socketRepository.getUserFromAuthorization(
+    const sender = await this.socketService.getUserFromAuthorization(
       client.handshake.headers,
     );
     if (sender === null) {
@@ -97,7 +97,7 @@ export class SocketGateway {
     }
 
     // 푸시 알림 전송
-    await this.socketRepository.sendPushMessageToUser(
+    await this.socketService.sendPushMessageToUser(
       sender.id,
       receiverId,
       chattingId,
@@ -106,7 +106,7 @@ export class SocketGateway {
     );
 
     // 소켓 메시지 전송
-    await this.socketRepository.sendMessageToUser(
+    await this.socketService.sendMessageToUser(
       sender.id,
       receiverId,
       chattingId,

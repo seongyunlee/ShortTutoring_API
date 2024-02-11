@@ -3,7 +3,7 @@ import { ChattingRepository } from '../chatting/chatting.repository';
 import { ChattingStatus } from '../chatting/entities/chatting.interface';
 import { QuestionRepository } from '../question/question.repository';
 import { Fail, Success } from '../response';
-import { SocketRepository } from '../socket/socket.repository';
+import { SocketService } from '../socket/socket.service';
 import { UploadService } from '../upload/upload.service';
 import {
   StudentListing,
@@ -24,7 +24,7 @@ export class TutoringService {
     private readonly tutoringRepository: TutoringRepository,
     private readonly questionRepository: QuestionRepository,
     private readonly agoraService: AgoraService,
-    private readonly socketRepository: SocketRepository,
+    private readonly socketService: SocketService,
     private readonly userRepository: UserRepository,
     private readonly chattingRepository: ChattingRepository,
     private readonly uploadRepository: UploadService,
@@ -52,7 +52,7 @@ export class TutoringService {
         tutoring.teacherId,
       );
 
-      await this.socketRepository.sendMessageToBothUser(
+      await this.socketService.sendMessageToBothUser(
         tutoring.teacherId,
         tutoring.studentId,
         chatId,
@@ -127,7 +127,7 @@ export class TutoringService {
 
       await this.questionRepository.changeStatus(questionId, 'reserved');
 
-      await this.socketRepository.sendMessageToBothUser(
+      await this.socketService.sendMessageToBothUser(
         question.selectedTeacherId,
         question.studentId,
         chatRoomId,
@@ -232,7 +232,7 @@ export class TutoringService {
         ChattingStatus.declined,
       );
 
-      await this.socketRepository.sendMessageToBothUser(
+      await this.socketService.sendMessageToBothUser(
         chatRoomInfo.teacherId,
         chatRoomInfo.studentId,
         chattingId,
@@ -270,7 +270,7 @@ export class TutoringService {
         );
 
       if (tutoring.status == 'reserved') {
-        await this.socketRepository.sendMessageToBothUser(
+        await this.socketService.sendMessageToBothUser(
           tutoring.teacherId,
           tutoring.studentId,
           chatRoomId,
