@@ -4,13 +4,13 @@ import { FcmService } from './fcm.service';
 import { Body, Controller, Headers, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@Controller('fcm')
+@Controller('user')
 export class FcmController {
   constructor(private readonly fcmService: FcmService) {}
 
   @ApiTags('User')
   @ApiBearerAuth('Authorization')
-  @Post('user/fcmToken')
+  @Post('fcmToken')
   setFCMToken(
     @Headers() headers: Headers,
     @Body() setFCMTokenUserDto: SetFCMTokenUserDto,

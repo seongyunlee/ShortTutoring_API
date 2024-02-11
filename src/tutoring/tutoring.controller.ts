@@ -112,7 +112,7 @@ export class TutoringController {
   @ApiTags('User')
   @ApiBearerAuth('Authorization')
   @ApiOperation(UserOperation.tutoringList)
-  @Get('user/tutoring/list')
+  @Get('list')
   @ApiResponse(UserResponse.tutoringList)
   tutoringList(@Headers() headers: Headers) {
     return this.tutoringService.tutoringList(AccessToken.userId(headers));
@@ -122,7 +122,7 @@ export class TutoringController {
   @ApiBearerAuth('Authorization')
   @ApiParam(UserParam.teacherId)
   @ApiOperation(TeacherOperation.reviewList)
-  @Get('teacher/review/list/:teacherId')
+  @Get('review/list/:teacherId')
   reviewList(
     @Headers() headers: Headers,
     @Param('teacherId') teacherId: string,

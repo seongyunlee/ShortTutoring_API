@@ -4,7 +4,7 @@ import { ChatInfoService } from './chat-info.service';
 import { Controller, Get, Headers, Param } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 
-@Controller('chat-info')
+@Controller('chatting')
 export class ChatInfoController {
   constructor(private readonly chattingInfoService: ChatInfoService) {}
 

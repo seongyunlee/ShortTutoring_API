@@ -10,7 +10,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-@Controller('online')
+@Controller()
 export class OnlineController {
   constructor(private readonly onlineService: OnlineService) {}
 

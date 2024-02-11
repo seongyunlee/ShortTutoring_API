@@ -20,7 +20,7 @@ export class FollowController {
   @ApiBearerAuth('Authorization')
   @ApiParam(UserParam.userId)
   @ApiOperation(UserOperation.follow)
-  @Get('student/follow/:userId')
+  @Get('following/:userId')
   follow(@Headers() headers: Headers, @Param('userId') userId: string) {
     return this.followService.follow(AccessToken.userId(headers), userId);
   }
@@ -29,7 +29,7 @@ export class FollowController {
   @ApiBearerAuth('Authorization')
   @ApiParam(UserParam.userId)
   @ApiOperation(UserOperation.unfollow)
-  @Get('student/unfollow/:userId')
+  @Get('unfollowing/:userId')
   unfollow(@Headers() headers: Headers, @Param('userId') userId: string) {
     return this.followService.unfollow(AccessToken.userId(headers), userId);
   }
@@ -37,9 +37,17 @@ export class FollowController {
   @ApiTags('Student')
   @ApiBearerAuth('Authorization')
   @ApiOperation(UserOperation.following)
-  @Get('student/following')
-  following(@Headers() headers: Headers) {
+  @Get('followings')
+  followings(@Headers() headers: Headers) {
     return this.followService.following(AccessToken.userId(headers));
+  }
+
+  @ApiTags('Teacher')
+  @ApiBearerAuth('Authorization')
+  @ApiOperation(UserOperation.followers)
+  @Get('followers')
+  followers(@Headers() headers: Headers) {
+    return this.followService.followers(AccessToken.userId(headers));
   }
 
   @ApiTags('User')
@@ -47,7 +55,7 @@ export class FollowController {
   @ApiParam(UserParam.userId)
   @ApiOperation(UserOperation.otherFollowers)
   @ApiResponse(UserResponse.followInfo)
-  @Get('user/followers/:userId')
+  @Get('followers/:userId')
   otherFollowers(@Headers() headers: Headers, @Param('userId') userId: string) {
     return this.followService.otherFollowers(userId);
   }
@@ -57,7 +65,7 @@ export class FollowController {
   @ApiParam(UserParam.userId)
   @ApiOperation(UserOperation.otherFollowing)
   @ApiResponse(UserResponse.followInfo)
-  @Get('user/following/:userId')
+  @Get('followings/:userId')
   otherFollowing(@Headers() headers: Headers, @Param('userId') userId: string) {
     return this.followService.otherFollowing(userId);
   }
