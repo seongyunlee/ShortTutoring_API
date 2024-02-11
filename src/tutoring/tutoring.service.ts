@@ -5,6 +5,13 @@ import { QuestionRepository } from '../question/question.repository';
 import { Fail, Success } from '../response';
 import { SocketRepository } from '../socket/socket.repository';
 import { UploadService } from '../upload/upload.service';
+import {
+  StudentListing,
+  TeacherListing,
+  TutoringHistory,
+  UserListing,
+} from '../user/entities/user.entities';
+import { User } from '../user/entities/user.interface';
 import { UserRepository } from '../user/user.repository';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ClassroomInfo, TutoringInfo } from './entities/tutoring.entity';
@@ -310,6 +317,109 @@ export class TutoringService {
       );
     } catch (error) {
       return new Fail(error.message);
+    }
+  }
+
+  async tutoringList(userId: any) {
+    try {
+      const user = await this.userRepository.get(userId);
+      const role = user.role;
+
+      const tutoringHistory = await this.tutoringRepository.history(
+        userId,
+        role,
+      );
+      const result = await Promise.all(
+        tutoringHistory.map(async (tutoring) => {
+          const question = await this.questionRepository.getInfo(
+            tutoring.questionId,
+          );
+          const opponent = await this.userRepository.get(
+            role == 'teacher' ? tutoring.studentId : tutoring.teacherId,
+          );
+          const history: TutoringHistory = {
+            tutoringId: tutoring.id,
+            description: question.problem.description,
+            schoolLevel: question.problem.schoolLevel,
+            schoolSubject: question.problem.schoolSubject,
+            tutoringDate: tutoring.startedAt,
+            questionId: tutoring.questionId,
+            opponentName: opponent.name,
+            opponentProfileImage: opponent.profileImage,
+            questionImage: question.problem.mainImage,
+            recordFileUrl: tutoring.recordingFilePath,
+          };
+          return history;
+        }),
+      );
+
+      return new Success('과외 내역을 가져왔습니다.', result);
+    } catch (error) {
+      console.log(error);
+      return new Fail('과외 내역을 가져오는데 실패했습니다.');
+    }
+  }
+
+  async reviewList(userId: any) {
+    const user = await this.userRepository.get(userId);
+    if (user.role === 'student') {
+      return new Fail('선생님의 리뷰 내역만 볼 수 있습니다.');
+    }
+
+    try {
+      const reviewHistory = await this.tutoringRepository.reviewHistory(userId);
+
+      for (const review of reviewHistory) {
+        review.student = await this.userRepository.getOther(review.studentId);
+      }
+
+      return new Success('리뷰 내역을 가져왔습니다.', {
+        count: reviewHistory.length,
+        history: reviewHistory,
+      });
+    } catch (error) {
+      return new Fail('리뷰 내역을 가져오는데 실패했습니다.');
+    }
+  }
+
+  /**
+   * 특정 사용자의 정보를 가져옵니다.
+   * @param userId 조회할 사용자 ID
+   * @returns User 사용자 정보, 민감한 정보는 포함되지 않습니다.
+   */
+  async getOther(userId: string): Promise<UserListing> {
+    const user: User = await this.userRepository.get(userId);
+    if (user === undefined) {
+      return undefined;
+    } else {
+      if (user.role == 'teacher') {
+        const accTutoring =
+          await this.tutoringRepository.getTutoringCntOfTeacher(userId);
+        const teacher: TeacherListing = {
+          id: user.id,
+          name: user.name,
+          profileImage: user.profileImage,
+          role: user.role,
+          univ: user.school.name,
+          major: user.school.department,
+          followerIds: user.followers,
+          reserveCnt: accTutoring.length,
+          bio: user.bio,
+          rating: 5,
+        };
+        console.log(teacher);
+        return teacher;
+      } else if (user.role == 'student') {
+        const student: StudentListing = {
+          id: user.id,
+          name: user.name,
+          profileImage: user.profileImage,
+          role: user.role,
+          schoolLevel: user.school.level,
+          grade: user.school.grade,
+        };
+        return student;
+      }
     }
   }
 }

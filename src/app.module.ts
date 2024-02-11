@@ -17,6 +17,10 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { DynamooseModule } from 'nestjs-dynamoose';
+import { OnlineModule } from './online/online.module';
+import { FcmModule } from './fcm/fcm.module';
+import { FollowModule } from './follow/follow.module';
+import { ChatInfoModule } from './chat-info/chat-info.module';
 
 @Module({
   imports: [
@@ -31,6 +35,10 @@ import { DynamooseModule } from 'nestjs-dynamoose';
     ChattingModule,
     RedisModule,
     EventModule,
+    OnlineModule,
+    FcmModule,
+    FollowModule,
+    ChatInfoModule,
   ],
 })
 export class AppModule implements NestModule {

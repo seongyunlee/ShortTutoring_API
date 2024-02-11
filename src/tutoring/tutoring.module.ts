@@ -21,5 +21,6 @@ import { Module } from '@nestjs/common';
     UploadService,
     ChattingRepository,
   ],
+  exports: [TutoringRepository],
 })
 export class TutoringModule {}

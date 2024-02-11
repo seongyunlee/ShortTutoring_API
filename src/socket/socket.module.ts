@@ -3,19 +3,18 @@ import { ChattingRepository } from '../chatting/chatting.repository';
 import { dynamooseModule } from '../config.dynamoose';
 import { redisSubProvider } from '../config.redis';
 import { RedisModule } from '../redis/redis.module';
-import { UserRepository } from '../user/user.repository';
+import { UserModule } from '../user/user.module';
 import { SocketGateway } from './socket.gateway';
 import { SocketRepository } from './socket.repository';
 import { Module } from '@nestjs/common';
 
 @Module({
-  imports: [dynamooseModule, AuthModule, RedisModule],
+  imports: [dynamooseModule, RedisModule, AuthModule, UserModule],
   providers: [
     SocketRepository,
     SocketGateway,
-    ChattingRepository,
     redisSubProvider,
-    UserRepository,
+    ChattingRepository,
   ],
   exports: [SocketRepository],
 })
