@@ -1,4 +1,3 @@
-import { webhook } from '../config.discord-webhook';
 import { Injectable } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
 import { MessageBuilder } from 'discord-webhook-node';
@@ -28,7 +27,7 @@ export class UploadService {
 
     try {
       const imagePath = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${path}/${fileName}`;
-      await webhook.info(`Uploading ${path}/${fileName}`);
+      //await webhook.info(`Uploading ${path}/${fileName}`);
       await new AWS.S3()
         .putObject({
           Key: `${path}/${fileName}`,
@@ -38,10 +37,11 @@ export class UploadService {
         .promise();
 
       const embed = new MessageBuilder().setImage(imagePath);
-      await webhook.send(embed);
+      //await webhook.send(embed);
 
       return imagePath;
     } catch (error) {
+      console.log(error);
       throw Error('이미지 업로드에 실패했습니다.');
     }
   }

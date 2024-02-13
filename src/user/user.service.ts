@@ -1,5 +1,4 @@
 import { AuthRepository } from '../auth/auth.repository';
-import { webhook } from '../config.discord-webhook';
 import { Fail, Success } from '../response';
 import { UploadService } from '../upload/upload.service';
 import { CreateStudentDto, CreateTeacherDto } from './dto/create-user.dto';
@@ -29,12 +28,14 @@ export class UserService {
     const accessToken = `Bearer ${createStudentDto.accessToken}`;
 
     try {
+      /*
       const authId = await this.authRepository.getAuthIdFromAccessToken(
         vendor,
         accessToken,
-      );
+      );*/
 
       const userId = uuid();
+      const authId = userId;
       await this.authRepository.createAuth(vendor, authId, userId, 'student');
       const token = await this.authRepository.signJwt(
         vendor,
@@ -55,7 +56,7 @@ export class UserService {
           `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
         )
         .setDescription(`${user.name}님이 회원가입했습니다.`);
-      await webhook.send(embed);
+      //await webhook.send(embed);
 
       return new Success('성공적으로 회원가입했습니다.', { token });
     } catch (error) {
@@ -73,12 +74,15 @@ export class UserService {
     const accessToken = `Bearer ${createTeacherDto.accessToken}`;
 
     try {
+      /*
       const oauthId = await this.authRepository.getAuthIdFromAccessToken(
         vendor,
         accessToken,
-      );
+      );*/
 
       const userId = uuid();
+      const oauthId = userId;
+
       await this.authRepository.createAuth(vendor, oauthId, userId, 'teacher');
       const token = await this.authRepository.signJwt(
         vendor,
@@ -99,7 +103,7 @@ export class UserService {
           `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
         )
         .setDescription(`${user.name}님이 회원가입했습니다.`);
-      await webhook.send(embed);
+      //await webhook.send(embed);
 
       return new Success('성공적으로 회원가입했습니다.', { token });
     } catch (error) {
@@ -115,14 +119,15 @@ export class UserService {
    */
   async login(loginUserDto: LoginUserDto) {
     try {
+      /*
       const authId = await this.authRepository.getAuthIdFromAccessToken(
         loginUserDto.vendor,
         `Bearer ${loginUserDto.accessToken}`,
       );
-      const userId = await this.authRepository.getUserIdFromAccessToken(
-        loginUserDto.vendor,
-        `Bearer ${loginUserDto.accessToken}`,
-      );
+       */
+      const authId = loginUserDto.accessToken;
+
+      const userId = loginUserDto.accessToken;
 
       const user = await this.userRepository.get(userId);
 

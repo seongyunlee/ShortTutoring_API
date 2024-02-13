@@ -1,4 +1,4 @@
-import { socketErrorWebhook, webhook } from '../config.discord-webhook';
+//import { socketErrorWebhook, webhook } from '../config.discord-webhook';
 import { RedisRepository } from '../redis/redis.repository';
 import { SocketService } from './socket.service';
 import { Inject } from '@nestjs/common';
@@ -40,15 +40,15 @@ export class SocketGateway {
       await this.redisSub.subscribe(client.id, (message) => {
         client.emit('message', message);
       });
-      await webhook.send(
+      /*await webhook.send(
         `${user.id}(${user.role})이 ` +
           process.env.NODE_ENV +
           ' 서버에 연결되었습니다.',
-      );
+      );*/
     } catch (error) {
       const message = `소켓 연결에 실패했습니다. ${error.message}`;
 
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('소켓 연결에 실패했습니다.');
     }
@@ -69,7 +69,7 @@ export class SocketGateway {
     } catch (error) {
       const message = `소켓 연결을 끊을 수 없습니다. ${error.message}`;
 
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('소켓 연결을 끊을 수 없습니다.');
     }
@@ -91,7 +91,7 @@ export class SocketGateway {
     if (sender === null) {
       const message = `사용자를 찾을 수 없습니다.`;
 
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('사용자를 찾을 수 없습니다.');
     }
@@ -128,7 +128,7 @@ export class SocketGateway {
       const message = `디버깅에 실패했습니다. ${error.message}`;
 
       console.log(message);
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('디버깅에 실패했습니다.');
     }
