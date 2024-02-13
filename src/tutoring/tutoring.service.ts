@@ -1,5 +1,6 @@
 import { AgoraService, WhiteBoardChannelInfo } from '../agora/agora.service';
 import { ChattingRepository } from '../chatting/chatting.repository';
+import { ChattingService } from '../chatting/chatting.service';
 import { ChattingStatus } from '../chatting/entities/chatting.interface';
 import { QuestionRepository } from '../question/question.repository';
 import { Fail, Success } from '../response';
@@ -28,6 +29,7 @@ export class TutoringService {
     private readonly userRepository: UserRepository,
     private readonly chattingRepository: ChattingRepository,
     private readonly uploadRepository: UploadService,
+    private readonly chattingService: ChattingService,
   ) {}
 
   async finish(tutoringId: string) {
@@ -52,7 +54,7 @@ export class TutoringService {
         tutoring.teacherId,
       );
 
-      await this.socketService.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         tutoring.teacherId,
         tutoring.studentId,
         chatId,
@@ -127,7 +129,7 @@ export class TutoringService {
 
       await this.questionRepository.changeStatus(questionId, 'reserved');
 
-      await this.socketService.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         question.selectedTeacherId,
         question.studentId,
         chatRoomId,
@@ -232,7 +234,7 @@ export class TutoringService {
         ChattingStatus.declined,
       );
 
-      await this.socketService.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         chatRoomInfo.teacherId,
         chatRoomInfo.studentId,
         chattingId,
@@ -270,7 +272,7 @@ export class TutoringService {
         );
 
       if (tutoring.status == 'reserved') {
-        await this.socketService.sendMessageToBothUser(
+        await this.chattingService.sendMessageToBothUser(
           tutoring.teacherId,
           tutoring.studentId,
           chatRoomId,

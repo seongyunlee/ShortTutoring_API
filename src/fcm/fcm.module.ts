@@ -7,5 +7,6 @@ import { Module } from '@nestjs/common';
   imports: [RedisModule],
   controllers: [FcmController],
   providers: [FcmService],
+  exports: [FcmService],
 })
 export class FcmModule {}

@@ -1,4 +1,6 @@
 //import { socketErrorWebhook, webhook } from '../config.discord-webhook';
+import { ChattingService } from '../chatting/chatting.service';
+import { FcmService } from '../fcm/fcm.service';
 import { RedisRepository } from '../redis/redis.repository';
 import { SocketService } from './socket.service';
 import { Inject } from '@nestjs/common';
@@ -19,6 +21,8 @@ export class SocketGateway {
   constructor(
     private readonly redisRepository: RedisRepository,
     private readonly socketService: SocketService,
+    private readonly chattingService: ChattingService,
+    private readonly fcmService: FcmService,
     @Inject('REDIS_SUB') private redisSub: RedisClientType,
   ) {}
 
@@ -97,7 +101,7 @@ export class SocketGateway {
     }
 
     // 푸시 알림 전송
-    await this.socketService.sendPushMessageToUser(
+    await this.fcmService.sendPushMessageToUser(
       sender.id,
       receiverId,
       chattingId,
@@ -106,7 +110,7 @@ export class SocketGateway {
     );
 
     // 소켓 메시지 전송
-    await this.socketService.sendMessageToUser(
+    await this.chattingService.sendMessageToUser(
       sender.id,
       receiverId,
       chattingId,
