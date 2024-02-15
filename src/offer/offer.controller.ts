@@ -1,9 +1,9 @@
-import { AccessToken } from '../auth/entities/auth.entity';
+import { ActiveUser } from '../common/decorators/active-user.decorator';
 import { OfferOperations } from './descriptions/offer.operation';
 import { OfferParam } from './descriptions/offer.param';
 import { AcceptOfferDto } from './dto/accept-offer.dto';
 import { OfferService } from './offer.service';
-import { Body, Controller, Get, Headers, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -20,8 +20,11 @@ export class OfferController {
   @Get('teacher/offer/append/:questionId')
   @ApiParam(OfferParam.questionId)
   @ApiOperation(OfferOperations.append)
-  append(@Headers() headers: Headers, @Param('questionId') questionId: string) {
-    return this.offerService.append(AccessToken.userId(headers), questionId);
+  append(
+    @ActiveUser('userId') userId: string,
+    @Param('questionId') questionId: string,
+  ) {
+    return this.offerService.append(userId, questionId);
   }
 
   /*
@@ -30,7 +33,7 @@ export class OfferController {
   @ApiParam(OfferParam.questionId)
   @ApiOperation(OfferOperations.remove)
   remove(@Headers() headers: Headers, @Param('questionId') questionId: string) {
-    return this.offerService.remove(AccessToken.userId(headers), questionId);
+    return this.offerService.remove(userId, questionId);
   }*/
 
   /*
@@ -44,7 +47,7 @@ export class OfferController {
     @Headers() headers: Headers,
     @Param('questionId') questionId: string,
   ) {
-    return this.offerService.getStatus(AccessToken.userId(headers), questionId);
+    return this.offerService.getStatus(userId, questionId);
   }*/
 
   /*
@@ -57,7 +60,7 @@ export class OfferController {
     @Param('questionId') questionId: string,
   ) {
     return this.offerService.getTeachers(
-      AccessToken.userId(headers),
+      userId,
       questionId,
     );
   }*/
@@ -67,12 +70,12 @@ export class OfferController {
   @ApiParam(OfferParam.questionId)
   @ApiOperation(OfferOperations.accept)
   accept(
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId,
     @Param('questionId') questionId: string,
     @Body() acceptOfferDto: AcceptOfferDto,
   ) {
     return this.offerService.accept(
-      AccessToken.userId(headers),
+      userId,
       acceptOfferDto.chattingId,
       questionId,
       acceptOfferDto.startTime,

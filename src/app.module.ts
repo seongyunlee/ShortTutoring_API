@@ -1,5 +1,5 @@
-import { AuthMiddleware } from './auth/auth.middleware';
 import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ChatInfoModule } from './chat-info/chat-info.module';
 import { ChattingModule } from './chatting/chatting.module';
 import { DynamooseConfig } from './config.dynamoose';
@@ -11,12 +11,8 @@ import { QuestionModule } from './question/question.module';
 import { TutoringModule } from './tutoring/tutoring.module';
 import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { DynamooseModule } from 'nestjs-dynamoose';
 
 @Module({
@@ -34,18 +30,11 @@ import { DynamooseModule } from 'nestjs-dynamoose';
     FollowModule,
     ChatInfoModule,
   ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleware)
-      .exclude(
-        { path: 'auth/(.*)', method: RequestMethod.ALL },
-        { path: 'student/signup', method: RequestMethod.POST },
-        { path: 'teacher/signup', method: RequestMethod.POST },
-        { path: 'user/login', method: RequestMethod.POST },
-      )
-      .forRoutes({ path: '*', method: RequestMethod.ALL })
-      .apply(AuthMiddleware);
-  }
-}
+export class AppModule {}

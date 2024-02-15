@@ -1,3 +1,4 @@
+import { Public } from '../common/decorators/public.decorator';
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventService } from './event.service';
 import { Body, Controller, Get, Post } from '@nestjs/common';
@@ -15,6 +16,7 @@ export class EventController {
   }
 
   @Get('list')
+  @Public()
   findAll() {
     return this.eventService.findAll();
   }
