@@ -1,4 +1,4 @@
-import { UploadRepository } from '../upload/upload.repository';
+import { UploadService } from '../upload/upload.service';
 import { User } from '../user/entities/user.interface';
 import { UserRepository } from '../user/user.repository';
 import {
@@ -16,7 +16,7 @@ export class QuestionRepository {
     @InjectModel('Question')
     private readonly questionModel: Model<Question, QuestionKey>,
     private readonly userRepository: UserRepository,
-    private readonly uploadRepository: UploadRepository,
+    private readonly uploadRepository: UploadService,
   ) {}
 
   async createNormalQuestion(

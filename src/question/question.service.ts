@@ -1,6 +1,7 @@
 import { ChattingRepository } from '../chatting/chatting.repository';
+import { ChattingService } from '../chatting/chatting.service';
 import { Fail, Success } from '../response';
-import { SocketRepository } from '../socket/socket.repository';
+import { SocketService } from '../socket/socket.service';
 import { UserRepository } from '../user/user.repository';
 import {
   CreateNormalQuestionDto,
@@ -16,8 +17,9 @@ export class QuestionService {
   constructor(
     private readonly questionRepository: QuestionRepository,
     private readonly chattingRepository: ChattingRepository,
+    private readonly chattingService: ChattingService,
     private readonly userRepository: UserRepository,
-    private readonly socketRepository: SocketRepository,
+    private readonly socketService: SocketService,
   ) {}
 
   /**
@@ -110,14 +112,14 @@ export class QuestionService {
         startDateTime: createQuestionDto.requestTutoringStartTime.toISOString(),
       };
 
-      await this.socketRepository.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         userId,
         teacherId,
         chatRoomId,
         'problem-image',
         JSON.stringify(problemMessage),
       );
-      await this.socketRepository.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         userId,
         teacherId,
         chatRoomId,

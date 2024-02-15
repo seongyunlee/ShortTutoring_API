@@ -1,27 +1,26 @@
 import { AgoraModule } from '../agora/agora.module';
-import { ChattingRepository } from '../chatting/chatting.repository';
+import { ChattingModule } from '../chatting/chatting.module';
 import { dynamooseModule } from '../config.dynamoose';
-import { QuestionRepository } from '../question/question.repository';
+import { QuestionModule } from '../question/question.module';
 import { SocketModule } from '../socket/socket.module';
-import { TutoringRepository } from '../tutoring/tutoring.repository';
-import { UploadRepository } from '../upload/upload.repository';
-import { UserRepository } from '../user/user.repository';
+import { TutoringModule } from '../tutoring/tutoring.module';
+import { UserModule } from '../user/user.module';
 import { OfferController } from './offer.controller';
 import { OfferRepository } from './offer.repository';
 import { OfferService } from './offer.service';
 import { Module } from '@nestjs/common';
 
 @Module({
-  imports: [dynamooseModule, AgoraModule, SocketModule],
-  controllers: [OfferController],
-  providers: [
-    OfferService,
-    OfferRepository,
-    UserRepository,
-    QuestionRepository,
-    TutoringRepository,
-    UploadRepository,
-    ChattingRepository,
+  imports: [
+    dynamooseModule,
+    QuestionModule,
+    ChattingModule,
+    AgoraModule,
+    UserModule,
+    TutoringModule,
+    SocketModule,
   ],
+  controllers: [OfferController],
+  providers: [OfferService, OfferRepository],
 })
 export class OfferModule {}

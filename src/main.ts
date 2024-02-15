@@ -15,7 +15,7 @@ async function bootstrap() {
 
   dotenv.config();
   configSwagger(app);
-  configFirebase();
+  //configFirebase();
 
   await app.listen(3000);
 }

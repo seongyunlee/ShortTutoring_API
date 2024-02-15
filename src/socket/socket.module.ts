@@ -1,22 +1,24 @@
 import { AuthModule } from '../auth/auth.module';
-import { ChattingRepository } from '../chatting/chatting.repository';
+import { ChattingModule } from '../chatting/chatting.module';
 import { dynamooseModule } from '../config.dynamoose';
 import { redisSubProvider } from '../config.redis';
+import { FcmModule } from '../fcm/fcm.module';
 import { RedisModule } from '../redis/redis.module';
-import { UserRepository } from '../user/user.repository';
+import { UserModule } from '../user/user.module';
 import { SocketGateway } from './socket.gateway';
-import { SocketRepository } from './socket.repository';
+import { SocketService } from './socket.service';
 import { Module } from '@nestjs/common';
 
 @Module({
-  imports: [dynamooseModule, AuthModule, RedisModule],
-  providers: [
-    SocketRepository,
-    SocketGateway,
-    ChattingRepository,
-    redisSubProvider,
-    UserRepository,
+  imports: [
+    dynamooseModule,
+    RedisModule,
+    AuthModule,
+    UserModule,
+    ChattingModule,
+    FcmModule,
   ],
-  exports: [SocketRepository],
+  providers: [SocketService, SocketGateway, redisSubProvider],
+  exports: [SocketService],
 })
 export class SocketModule {}

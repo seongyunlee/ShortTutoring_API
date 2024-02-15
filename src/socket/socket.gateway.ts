@@ -1,6 +1,8 @@
-import { socketErrorWebhook, webhook } from '../config.discord-webhook';
+//import { socketErrorWebhook, webhook } from '../config.discord-webhook';
+import { ChattingService } from '../chatting/chatting.service';
+import { FcmService } from '../fcm/fcm.service';
 import { RedisRepository } from '../redis/redis.repository';
-import { SocketRepository } from './socket.repository';
+import { SocketService } from './socket.service';
 import { Inject } from '@nestjs/common';
 import {
   SubscribeMessage,
@@ -18,7 +20,9 @@ export class SocketGateway {
 
   constructor(
     private readonly redisRepository: RedisRepository,
-    private readonly socketRepository: SocketRepository,
+    private readonly socketService: SocketService,
+    private readonly chattingService: ChattingService,
+    private readonly fcmService: FcmService,
     @Inject('REDIS_SUB') private redisSub: RedisClientType,
   ) {}
 
@@ -28,7 +32,7 @@ export class SocketGateway {
    */
   async handleConnection(client: any) {
     try {
-      const user = await this.socketRepository.getUserFromAuthorization(
+      const user = await this.socketService.getUserFromAuthorization(
         client.handshake.headers,
       );
 
@@ -40,15 +44,15 @@ export class SocketGateway {
       await this.redisSub.subscribe(client.id, (message) => {
         client.emit('message', message);
       });
-      await webhook.send(
+      /*await webhook.send(
         `${user.id}(${user.role})이 ` +
           process.env.NODE_ENV +
           ' 서버에 연결되었습니다.',
-      );
+      );*/
     } catch (error) {
       const message = `소켓 연결에 실패했습니다. ${error.message}`;
 
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('소켓 연결에 실패했습니다.');
     }
@@ -60,7 +64,7 @@ export class SocketGateway {
    */
   async handleDisconnect(client: any) {
     try {
-      const user = await this.socketRepository.getUserFromAuthorization(
+      const user = await this.socketService.getUserFromAuthorization(
         client.handshake.headers,
       );
 
@@ -69,7 +73,7 @@ export class SocketGateway {
     } catch (error) {
       const message = `소켓 연결을 끊을 수 없습니다. ${error.message}`;
 
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('소켓 연결을 끊을 수 없습니다.');
     }
@@ -85,19 +89,19 @@ export class SocketGateway {
   async handleMessage(client: any, payload: any) {
     const { receiverId, chattingId, format, body } = payload;
 
-    const sender = await this.socketRepository.getUserFromAuthorization(
+    const sender = await this.socketService.getUserFromAuthorization(
       client.handshake.headers,
     );
     if (sender === null) {
       const message = `사용자를 찾을 수 없습니다.`;
 
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('사용자를 찾을 수 없습니다.');
     }
 
     // 푸시 알림 전송
-    await this.socketRepository.sendPushMessageToUser(
+    await this.fcmService.sendPushMessageToUser(
       sender.id,
       receiverId,
       chattingId,
@@ -106,7 +110,7 @@ export class SocketGateway {
     );
 
     // 소켓 메시지 전송
-    await this.socketRepository.sendMessageToUser(
+    await this.chattingService.sendMessageToUser(
       sender.id,
       receiverId,
       chattingId,
@@ -128,7 +132,7 @@ export class SocketGateway {
       const message = `디버깅에 실패했습니다. ${error.message}`;
 
       console.log(message);
-      await socketErrorWebhook.send(message);
+      //await socketErrorWebhook.send(message);
 
       return new Error('디버깅에 실패했습니다.');
     }

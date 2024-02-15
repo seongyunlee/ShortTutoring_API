@@ -1,19 +1,9 @@
 import { AuthRepository } from '../auth/auth.repository';
-import { webhook } from '../config.discord-webhook';
-import { QuestionRepository } from '../question/question.repository';
-import { RedisRepository } from '../redis/redis.repository';
 import { Fail, Success } from '../response';
-import { TutoringRepository } from '../tutoring/tutoring.repository';
-import { UploadRepository } from '../upload/upload.repository';
+import { UploadService } from '../upload/upload.service';
 import { CreateStudentDto, CreateTeacherDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {
-  StudentListing,
-  TeacherListing,
-  TutoringHistory,
-  UserListing,
-} from './entities/user.entities';
 import { User } from './entities/user.interface';
 import { UserRepository } from './user.repository';
 import { Injectable } from '@nestjs/common';
@@ -25,10 +15,7 @@ export class UserService {
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly userRepository: UserRepository,
-    private readonly uploadRepository: UploadRepository,
-    private readonly redisRepository: RedisRepository,
-    private readonly tutoringRepository: TutoringRepository,
-    private readonly questionRepository: QuestionRepository,
+    private readonly uploadService: UploadService,
   ) {}
 
   /**
@@ -41,12 +28,14 @@ export class UserService {
     const accessToken = `Bearer ${createStudentDto.accessToken}`;
 
     try {
+      /*
       const authId = await this.authRepository.getAuthIdFromAccessToken(
         vendor,
         accessToken,
-      );
+      );*/
 
       const userId = uuid();
+      const authId = userId;
       await this.authRepository.createAuth(vendor, authId, userId, 'student');
       const token = await this.authRepository.signJwt(
         vendor,
@@ -67,7 +56,7 @@ export class UserService {
           `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
         )
         .setDescription(`${user.name}님이 회원가입했습니다.`);
-      await webhook.send(embed);
+      //await webhook.send(embed);
 
       return new Success('성공적으로 회원가입했습니다.', { token });
     } catch (error) {
@@ -85,12 +74,15 @@ export class UserService {
     const accessToken = `Bearer ${createTeacherDto.accessToken}`;
 
     try {
+      /*
       const oauthId = await this.authRepository.getAuthIdFromAccessToken(
         vendor,
         accessToken,
-      );
+      );*/
 
       const userId = uuid();
+      const oauthId = userId;
+
       await this.authRepository.createAuth(vendor, oauthId, userId, 'teacher');
       const token = await this.authRepository.signJwt(
         vendor,
@@ -111,7 +103,7 @@ export class UserService {
           `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
         )
         .setDescription(`${user.name}님이 회원가입했습니다.`);
-      await webhook.send(embed);
+      //await webhook.send(embed);
 
       return new Success('성공적으로 회원가입했습니다.', { token });
     } catch (error) {
@@ -127,14 +119,15 @@ export class UserService {
    */
   async login(loginUserDto: LoginUserDto) {
     try {
+      /*
       const authId = await this.authRepository.getAuthIdFromAccessToken(
         loginUserDto.vendor,
         `Bearer ${loginUserDto.accessToken}`,
       );
-      const userId = await this.authRepository.getUserIdFromAccessToken(
-        loginUserDto.vendor,
-        `Bearer ${loginUserDto.accessToken}`,
-      );
+       */
+      const authId = loginUserDto.accessToken;
+
+      const userId = loginUserDto.accessToken;
 
       const user = await this.userRepository.get(userId);
 
@@ -162,13 +155,18 @@ export class UserService {
     try {
       const user: User = await this.userRepository.get(userId);
       if (user.role === 'teacher') {
-        user.rating = await this.tutoringRepository.getTeacherRating(userId);
+        user.rating = await this.getTeacherRating(userId);
       }
 
       return new Success('나의 프로필을 성공적으로 조회했습니다.', user);
     } catch (error) {
       return new Fail(error.message);
     }
+  }
+
+  getTeacherRating(userId: string) {
+    //TODO: Rating을 User 객체에서 가져오기
+    return 10;
   }
 
   /**
@@ -178,7 +176,7 @@ export class UserService {
    @return profileImage URL
    */
   async profileImage(userId: string, updateUserDto: UpdateUserDto) {
-    return await this.uploadRepository
+    return await this.uploadService
       .uploadBase64(
         `user/${userId}`,
         `profile.${updateUserDto.profileImageFormat}`,
@@ -218,7 +216,7 @@ export class UserService {
     try {
       const user = await this.userRepository.getOther(userId);
       if (user.role === 'teacher') {
-        user.rating = await this.tutoringRepository.getTeacherRating(userId);
+        user.rating = await this.getTeacherRating(userId);
       }
 
       return new Success('사용자 프로필을 성공적으로 가져왔습니다.', user);
@@ -241,110 +239,9 @@ export class UserService {
     }
   }
 
-  async follow(studentId: string, teacherId: string) {
-    try {
-      await this.userRepository.follow(studentId, teacherId);
-      return new Success('성공적으로 팔로우했습니다.');
-    } catch (error) {
-      return new Fail(error.message);
-    }
-  }
-
-  async unfollow(studentId: string, teacherId: string) {
-    try {
-      await this.userRepository.unfollow(studentId, teacherId);
-      return new Success('성공적으로 언팔로우했습니다.');
-    } catch (error) {
-      return new Fail(error.message);
-    }
-  }
-
-  /**
-   * 내가 팔로우한 선생님들을 가져옵니다.
-   */
-  async following(studentId: string) {
-    try {
-      return new Success(
-        '성공적으로 팔로잉한 선생님들을 가져왔습니다.',
-        await this.userRepository.following(studentId),
-      );
-    } catch (error) {
-      return new Fail(error.message);
-    }
-  }
-
-  async otherFollowers(userId: string) {
-    try {
-      const user = await this.userRepository.get(userId);
-      const userList = await Promise.all(
-        user.followers.map(async (id) => await this.getOther(id)),
-      );
-      return new Success(
-        '해당 사용자를 팔로우하는 사용자들의 정보를 성공적으로 가져왔습니다.',
-        userList,
-      );
-    } catch (error) {
-      return new Fail(
-        '해당 사용자를 팔로우하는 사용자들의 정보를 가져오는데 실패했습니다.',
-      );
-    }
-  }
-
-  async followers(teacherId: string) {
-    try {
-      const teacher: User = await this.userRepository.get(teacherId);
-      const followers = [];
-      for (const followerId of teacher.followers) {
-        followers.push(await this.getOther(followerId));
-      }
-      return new Success(
-        '성공적으로 팔로워 학생들을 가져왔습니다.',
-        await this.userRepository.followers(teacherId),
-      );
-    } catch (error) {
-      return new Fail(error.message);
-    }
-  }
-
-  /**
-   * 특정 사용자의 정보를 가져옵니다.
-   * @param userId 조회할 사용자 ID
-   * @returns User 사용자 정보, 민감한 정보는 포함되지 않습니다.
-   */
-  async getOther(userId: string): Promise<UserListing> {
-    const user: User = await this.userRepository.get(userId);
-    if (user === undefined) {
-      return undefined;
-    } else {
-      if (user.role == 'teacher') {
-        const accTutoring =
-          await this.tutoringRepository.getTutoringCntOfTeacher(userId);
-        const teacher: TeacherListing = {
-          id: user.id,
-          name: user.name,
-          profileImage: user.profileImage,
-          role: user.role,
-          univ: user.school.name,
-          major: user.school.department,
-          followerIds: user.followers,
-          reserveCnt: accTutoring.length,
-          bio: user.bio,
-          rating: 5,
-        };
-        console.log(teacher);
-        return teacher;
-      } else if (user.role == 'student') {
-        const student: StudentListing = {
-          id: user.id,
-          name: user.name,
-          profileImage: user.profileImage,
-          role: user.role,
-          schoolLevel: user.school.level,
-          grade: user.school.grade,
-        };
-        return student;
-      }
-    }
+  getTutoringCntOfTeacher(userId: string) {
+    //TODO: User 객체에서 tutoringCnt 가져오기
+    return 0;
   }
 
   async getBestTeachers(userId: string) {
@@ -352,9 +249,7 @@ export class UserService {
       await this.userRepository.get(userId);
       const bestTeachers = await this.userRepository.getTeachers();
       for (const teacher of bestTeachers) {
-        teacher.rating = await this.tutoringRepository.getTeacherRating(
-          teacher.id,
-        );
+        teacher.rating = await this.getTeacherRating(teacher.id);
       }
 
       bestTeachers.sort((a, b) => b.rating - a.rating);
@@ -368,145 +263,12 @@ export class UserService {
     }
   }
 
-  async getOnlineTeachers(userId: string) {
-    try {
-      const users = await this.redisRepository.getAllKeys();
-      const userState = await Promise.all(
-        users.map(async (user) => {
-          return {
-            id: user,
-            online: (await this.redisRepository.getSocketId(user)) != null,
-          };
-        }),
-      );
-      const onlineUsers = userState.filter((user) => user.online);
-      if (onlineUsers.length == 0)
-        return new Success('현재 온라인 선생님이 없습니다.', []);
-      const userIds = onlineUsers.map((teacher) => teacher.id);
-      const userInfos = await this.userRepository.usersInfo(userIds);
-      const teacherInfos = userInfos.filter((user) => user.role == 'teacher');
-      //TODO: rating 수정
-      const result: TeacherListing[] = await Promise.all(
-        teacherInfos.map(async (teacher) => {
-          return {
-            id: teacher.id,
-            name: teacher.name,
-            profileImage: teacher.profileImage,
-            role: teacher.role,
-            univ: teacher.school.name,
-            major: teacher.school.department,
-            followerIds: teacher.followers,
-            reserveCnt: (
-              await this.tutoringRepository.getTutoringCntOfTeacher(teacher.id)
-            ).length,
-            bio: teacher.bio,
-            rating: 5,
-          };
-        }),
-      );
-      return new Success(
-        '현재 온라인 선생님들을 성공적으로 가져왔습니다.',
-        result,
-      );
-    } catch (error) {
-      return new Fail(error.message);
-    }
-  }
-
-  async otherFollowing(userId: string) {
-    try {
-      const user = await this.userRepository.get(userId);
-      const userList = await Promise.all(
-        user.following.map(async (id) => await this.getOther(id)),
-      );
-      return new Success(
-        '해당 사용자가 팔로잉하는 사용자들의 정보를 성공적으로 가져왔습니다.',
-        userList,
-      );
-    } catch (error) {
-      return new Fail(
-        '해당 사용자가 팔로잉하는 사용자들의 정보를 가져오는데 실패했습니다.',
-      );
-    }
-  }
-
-  async setFCMToken(userId: any, fcmToken: string) {
-    try {
-      await this.redisRepository.setFCMToken(userId, fcmToken);
-      return new Success('성공적으로 FCM 토큰을 저장했습니다.');
-    } catch (error) {
-      return new Fail(error.message);
-    }
-  }
-
   async receiveFreeCoin(userId: string) {
     try {
       await this.userRepository.receiveFreeCoin(userId);
       return new Success('성공적으로 무료 코인을 지급받았습니다.');
     } catch (error) {
       return new Fail(error.message);
-    }
-  }
-
-  async tutoringList(userId: any) {
-    try {
-      const user = await this.userRepository.get(userId);
-      const role = user.role;
-
-      const tutoringHistory = await this.tutoringRepository.history(
-        userId,
-        role,
-      );
-      const result = await Promise.all(
-        tutoringHistory.map(async (tutoring) => {
-          const question = await this.questionRepository.getInfo(
-            tutoring.questionId,
-          );
-          const opponent = await this.userRepository.get(
-            role == 'teacher' ? tutoring.studentId : tutoring.teacherId,
-          );
-          const history: TutoringHistory = {
-            tutoringId: tutoring.id,
-            description: question.problem.description,
-            schoolLevel: question.problem.schoolLevel,
-            schoolSubject: question.problem.schoolSubject,
-            tutoringDate: tutoring.startedAt,
-            questionId: tutoring.questionId,
-            opponentName: opponent.name,
-            opponentProfileImage: opponent.profileImage,
-            questionImage: question.problem.mainImage,
-            recordFileUrl: tutoring.recordingFilePath,
-          };
-          return history;
-        }),
-      );
-
-      return new Success('과외 내역을 가져왔습니다.', result);
-    } catch (error) {
-      console.log(error);
-      return new Fail('과외 내역을 가져오는데 실패했습니다.');
-    }
-  }
-
-  async reviewList(userId: any) {
-    const user = await this.userRepository.get(userId);
-    if (user.role === 'student') {
-      return new Fail('선생님의 리뷰 내역만 볼 수 있습니다.');
-    }
-
-    try {
-      const reviewHistory = await this.tutoringRepository.reviewHistory(userId);
-
-      for (const review of reviewHistory) {
-        review.student = await this.userRepository.getOther(review.studentId);
-      }
-
-      return new Success('리뷰 내역을 가져왔습니다.', {
-        count: reviewHistory.length,
-        history: reviewHistory,
-      });
-    } catch (error) {
-      return new Fail('리뷰 내역을 가져오는데 실패했습니다.');
     }
   }
 }

@@ -1,22 +1,22 @@
 import { ChattingRepository } from '../chatting/chatting.repository';
+import { ChattingService } from '../chatting/chatting.service';
 import { ChattingStatus } from '../chatting/entities/chatting.interface';
 import { QuestionRepository } from '../question/question.repository';
 import { Fail, Success } from '../response';
-import { SocketRepository } from '../socket/socket.repository';
+import { SocketService } from '../socket/socket.service';
 import { TutoringRepository } from '../tutoring/tutoring.repository';
 import { UserRepository } from '../user/user.repository';
-import { OfferRepository } from './offer.repository';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class OfferService {
   constructor(
-    private readonly offerRepository: OfferRepository,
     private readonly userRepository: UserRepository,
     private readonly chattingRepository: ChattingRepository,
     private readonly questionRepository: QuestionRepository,
     private readonly tutoringRepository: TutoringRepository,
-    private readonly socketRepository: SocketRepository,
+    private readonly socketService: SocketService,
+    private readonly chattingService: ChattingService,
   ) {}
 
   async append(userId: string, questionId: string) {
@@ -56,14 +56,14 @@ export class OfferService {
         text: '안녕하세요 선생님! 언제 수업 가능하신가요?',
       };
 
-      await this.socketRepository.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         studentId,
         userId,
         chatRoomId,
         'problem-image',
         JSON.stringify(problemMessage),
       );
-      await this.socketRepository.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         studentId,
         userId,
         chatRoomId,
@@ -143,7 +143,7 @@ export class OfferService {
         startTime: startTime.toISOString(),
       };
 
-      await this.socketRepository.sendMessageToBothUser(
+      await this.chattingService.sendMessageToBothUser(
         userId,
         chatting.teacherId,
         chattingId,
@@ -166,7 +166,7 @@ export class OfferService {
             teacherChatId,
             ChattingStatus.declined,
           );
-          await this.socketRepository.sendMessageToBothUser(
+          await this.chattingService.sendMessageToBothUser(
             userId,
             offerTeacherId,
             teacherChatId,

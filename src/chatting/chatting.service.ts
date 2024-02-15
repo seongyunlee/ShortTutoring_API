@@ -1,11 +1,9 @@
-import { QuestionRepository } from '../question/question.repository';
-import { Fail, Success } from '../response';
-import { TutoringRepository } from '../tutoring/tutoring.repository';
-import { User } from '../user/entities/user.interface';
+import { FcmService } from '../fcm/fcm.service';
+import { RedisRepository } from '../redis/redis.repository';
 import { UserRepository } from '../user/user.repository';
 import { ChattingRepository } from './chatting.repository';
 import { UpdateChattingDto } from './dto/update-chatting.dto';
-import { ChatRoom, NestedChatRoomInfo } from './items/chat.list';
+import { Message } from './entities/chatting.interface';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -13,48 +11,94 @@ export class ChattingService {
   constructor(
     private readonly chattingRepository: ChattingRepository,
     private readonly userRepository: UserRepository,
-    private readonly questionRepository: QuestionRepository,
-    private readonly tutoringRepository: TutoringRepository,
+    private readonly redisRepository: RedisRepository,
+    private readonly fcmService: FcmService,
   ) {}
 
-  async makeChatItem(nestChatRoom: NestedChatRoomInfo, userInfo: User) {
-    //DB의 질문 정보와 채팅 정보를 API를 호출 한 사람에 맞게 가공한다.
+  /**
+   * 다른 사용자에게 메시지를 전송하는 메소드 , 연결된 소켓이 있으면 소켓 전송, 레디스에 브로드캐스트, DynamoDB에 저장
+   * @param senderId 메시지를 보내는 사용자의 ID
+   * @param receiverId 메시지를 받는 사용자의 ID
+   * @param chattingId 메시지를 보내는 채팅방의 ID
+   * @param format 메시지의 형식 (text, appoint-request , ...)
+   * @param body 메시지의 내용 (JSON 형식 ex: { "text" : "안녕하세요" } )
+   */
+  async sendMessageToUser(
+    senderId: string,
+    receiverId: string,
+    chattingId: string,
+    format: string,
+    body: string,
+  ) {
+    const message: Message = {
+      sender: senderId,
+      format,
+      body,
+      createdAt: new Date().toISOString(),
+    };
+    const receiverSocketId = await this.redisRepository.getSocketId(receiverId);
 
-    const { roomInfo, questionInfo } = nestChatRoom;
+    // 레디스 브로드캐스트
+    await this.redisRepository.publish(
+      receiverSocketId,
+      JSON.stringify({ chattingId, message }),
+    );
 
-    let opponentInfo: User | undefined;
+    // DynamoDB에 메시지 저장
+    await this.chattingRepository.sendMessage(
+      chattingId,
+      senderId,
+      format,
+      body,
+    );
+  }
 
-    try {
-      if (userInfo.role == 'student') {
-        opponentInfo = await this.userRepository.get(roomInfo.teacherId);
-      } else {
-        opponentInfo = await this.userRepository.get(roomInfo.studentId);
-      }
-    } catch (error) {
-      //유저 정보를 가져오는데 실패한 경우.
+  async sendMessageToBothUser(
+    senderId: string,
+    receiverId: string,
+    chattingId: string,
+    format: string,
+    body: string,
+  ) {
+    const message: Message = {
+      sender: senderId,
+      format,
+      body,
+      createdAt: new Date().toISOString(),
+    };
+    const receiverSocketId = await this.redisRepository.getSocketId(receiverId);
+
+    await this.fcmService.sendPushMessageToUser(
+      senderId,
+      receiverId,
+      chattingId,
+      format,
+      body,
+    );
+
+    await this.fcmService.sendPushMessageToUser(
+      senderId,
+      senderId,
+      chattingId,
+      format,
+      body,
+    );
+
+    const senderSocketId = await this.redisRepository.getSocketId(senderId);
+
+    if (receiverSocketId != null) {
+      await this.redisRepository.publish(
+        receiverSocketId,
+        JSON.stringify({ chattingId, message }),
+      );
     }
 
-    const chatRoom: ChatRoom = {
-      id: roomInfo.id,
-      status: roomInfo.status,
-      roomImage: opponentInfo.profileImage,
-      questionId: questionInfo.id,
-      isSelect: questionInfo.isSelect,
-      opponentId: opponentInfo?.id,
-      questionInfo: questionInfo,
-      title: opponentInfo?.name,
-    };
-
-    try {
-      if (questionInfo.tutoringId != null) {
-        const tutoringInfo = await this.tutoringRepository.get(
-          questionInfo.tutoringId,
-        );
-        chatRoom.reservedStart = tutoringInfo.reservedStart;
-      }
-    } catch (error) {}
-
-    return chatRoom;
+    if (senderSocketId != null) {
+      await this.redisRepository.publish(
+        senderSocketId,
+        JSON.stringify({ chattingId, message }),
+      );
+    }
   }
 
   /*
@@ -99,27 +143,6 @@ export class ChattingService {
 
   async findAll() {
     return await this.chattingRepository.findAll();
-  }
-
-  async findOne(chattingRoomId: string, userId: string) {
-    try {
-      const room = await this.chattingRepository.findOne(chattingRoomId);
-      if (room.studentId == userId || room.teacherId == userId) {
-        const userInfo = await this.userRepository.get(userId);
-        const questionInfo = await this.questionRepository.getInfo(
-          room.questionId,
-        );
-        const roomInfo = await this.makeChatItem(
-          { roomInfo: room, questionInfo },
-          userInfo,
-        );
-        return new Success('채팅방 정보를 불러왔습니다.', roomInfo);
-      } else {
-        return new Fail('해당 채팅방에 대한 권한이 없습니다.');
-      }
-    } catch (error) {
-      return new Fail('해당 채팅방 정보가 없습니다.');
-    }
   }
 
   update(id: number, updateChattingDto: UpdateChattingDto) {

@@ -1,5 +1,5 @@
 import { Fail, Success } from '../response';
-import { UploadRepository } from '../upload/upload.repository';
+import { UploadService } from '../upload/upload.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventRepository } from './event.repository';
 import { Injectable } from '@nestjs/common';
@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 export class EventService {
   constructor(
     private readonly eventRepository: EventRepository,
-    private readonly uploadRepository: UploadRepository,
+    private readonly uploadRepository: UploadService,
   ) {}
 
   async create(createEventDto: CreateEventDto) {
