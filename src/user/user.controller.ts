@@ -1,4 +1,5 @@
-import { AccessToken } from '../auth/entities/auth.entity';
+import { ActiveUser } from '../common/decorators/active-user.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { UserOperation } from './descriptions/user.operation';
 import { UserParam } from './descriptions/user.param';
 import { UserResponse } from './descriptions/user.response';
@@ -23,6 +24,7 @@ export class UserController {
   @ApiTags('Student')
   @ApiOperation(UserOperation.signup.student)
   @ApiCreatedResponse(UserResponse.signup.student)
+  @Public()
   @Post('student/signup')
   signupStudent(@Body() createStudentDto: CreateStudentDto) {
     return this.userService.signupStudent(createStudentDto);
@@ -31,6 +33,7 @@ export class UserController {
   @ApiTags('Teacher')
   @ApiOperation(UserOperation.signup.teacher)
   @ApiCreatedResponse(UserResponse.signup.teacher)
+  @Public()
   @Post('teacher/signup')
   signupTeacher(@Body() createTeacherDto: CreateTeacherDto) {
     return this.userService.signupTeacher(createTeacherDto);
@@ -40,6 +43,7 @@ export class UserController {
   @ApiOperation(UserOperation.login)
   @ApiResponse(UserResponse.login)
   @Post('user/login')
+  @Public()
   login(@Body() loginUserDto: LoginUserDto) {
     return this.userService.login(loginUserDto);
   }
@@ -49,8 +53,8 @@ export class UserController {
   @ApiOperation(UserOperation.me.profile)
   @ApiResponse(UserResponse.me.profile)
   @Get('user/profile')
-  profile(@Headers() header: Headers) {
-    return this.userService.profile(AccessToken.userId(header));
+  profile(@ActiveUser('userId') userId: string) {
+    return this.userService.profile(userId);
   }
 
   @ApiTags('User')
@@ -68,8 +72,11 @@ export class UserController {
   @ApiOperation(UserOperation.me.updateProfile)
   @ApiResponse(UserResponse.me.updateProfile)
   @Post('user/profile/update')
-  update(@Headers() headers: Headers, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(AccessToken.userId(headers), updateUserDto);
+  update(
+    @ActiveUser('userId') userId: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.userService.update(userId, updateUserDto);
   }
 
   @ApiTags('User')
@@ -77,25 +84,22 @@ export class UserController {
   @ApiOperation(UserOperation.me.withdraw)
   @ApiResponse(UserResponse.me.withdraw)
   @Get('user/withdraw')
-  withdraw(@Headers() headers: Headers) {
-    return this.userService.withdraw(
-      AccessToken.userId(headers),
-      AccessToken.authorization(headers),
-    );
+  withdraw(@ActiveUser() user: ActiveUserData) {
+    return this.userService.withdraw(user.userId, user.authId, user.vendor);
   }
 
   @ApiTags('User')
   @ApiBearerAuth('Authorization')
   @ApiOperation(UserOperation.bestTeacher)
   @Get('user/list/teacher/best')
-  getBestTeachers(@Headers() headers: Headers) {
-    return this.userService.getBestTeachers(AccessToken.userId(headers));
+  getBestTeachers(@ActiveUser('userId') userId: string) {
+    return this.userService.getBestTeachers(userId);
   }
 
   @ApiTags('User')
   @ApiBearerAuth('Authorization')
   @Get('user/receiveFreeCoin')
-  receiveFreeCoin(@Headers() headers: Headers) {
-    return this.userService.receiveFreeCoin(AccessToken.userId(headers));
+  receiveFreeCoin(@ActiveUser('userId') userId: string) {
+    return this.userService.receiveFreeCoin(userId);
   }
 }

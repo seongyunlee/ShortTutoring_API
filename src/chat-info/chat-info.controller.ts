@@ -1,7 +1,7 @@
-import { AccessToken } from '../auth/entities/auth.entity';
 import { ChattingOperation } from '../chatting/description/chatting.operation';
+import { ActiveUser } from '../common/decorators/active-user.decorator';
 import { ChatInfoService } from './chat-info.service';
-import { Controller, Get, Headers, Param } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('chatting')
@@ -12,11 +12,8 @@ export class ChatInfoController {
   @Get('/:chattingId')
   getChatRoomInfo(
     @Param('chattingId') chattingId: string,
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId: string,
   ) {
-    return this.chattingInfoService.findOne(
-      chattingId,
-      AccessToken.userId(headers),
-    );
+    return this.chattingInfoService.findOne(chattingId, userId);
   }
 }

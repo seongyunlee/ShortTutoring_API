@@ -1,4 +1,4 @@
-import { AccessToken } from '../auth/entities/auth.entity';
+import { ActiveUser } from '../common/decorators/active-user.decorator';
 import { QuestionOperation } from './descriptions/question.operation';
 import { QuestionQuery } from './descriptions/question.query';
 import { QuestionResponse } from './descriptions/question.response';
@@ -7,15 +7,7 @@ import {
   CreateSelectedQuestionDto,
 } from './dto/create-question.dto';
 import { QuestionService } from './question.service';
-import {
-  Body,
-  Controller,
-  Get,
-  Headers,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -34,13 +26,10 @@ export class QuestionController {
   @ApiResponse(QuestionResponse.create.success)
   @Post('student/question/create/normal')
   createNormal(
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId: string,
     @Body() createQuestionDto: CreateNormalQuestionDto,
   ) {
-    return this.questionService.createNormal(
-      AccessToken.userId(headers),
-      createQuestionDto,
-    );
+    return this.questionService.createNormal(userId, createQuestionDto);
   }
 
   @ApiTags('Student')
@@ -49,11 +38,11 @@ export class QuestionController {
   @ApiResponse(QuestionResponse.create.success)
   @Post('student/question/create/selected')
   createSelected(
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId: string,
     @Body() createQuestionDto: CreateSelectedQuestionDto,
   ) {
     return this.questionService.createSelected(
-      AccessToken.userId(headers),
+      userId,
       createQuestionDto.requestTeacherId,
       createQuestionDto,
     );
@@ -63,8 +52,11 @@ export class QuestionController {
   @ApiBearerAuth('Authorization')
   @ApiOperation(QuestionOperation.delete)
   @Get('student/question/delete/:questionId')
-  delete(@Param('questionId') questionId: string, @Headers() headers: Headers) {
-    return this.questionService.delete(AccessToken.userId(headers), questionId);
+  delete(
+    @Param('questionId') questionId: string,
+    @ActiveUser('userId') userId: string,
+  ) {
+    return this.questionService.delete(userId, questionId);
   }
 
   @ApiTags('Student')
@@ -76,13 +68,9 @@ export class QuestionController {
   getMyQuestions(
     @Query('status') status: string,
     @Query('type') type: string,
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId: string,
   ) {
-    return this.questionService.getMyQuestions(
-      AccessToken.userId(headers),
-      status,
-      type,
-    );
+    return this.questionService.getMyQuestions(userId, status, type);
   }
 
   @ApiTags('Teacher')

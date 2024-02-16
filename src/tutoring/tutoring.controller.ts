@@ -1,4 +1,5 @@
 import { AccessToken } from '../auth/entities/auth.entity';
+import { ActiveUser } from '../common/decorators/active-user.decorator';
 import {
   TeacherOperation,
   UserOperation,
@@ -35,8 +36,11 @@ export class TutoringController {
   @ApiBearerAuth('Authorization')
   @ApiOperation(TutoringOperation.info)
   @Get('info/:questionId')
-  info(@Param('questionId') questionId: string, @Headers() headers: Headers) {
-    return this.tutoringService.info(questionId, AccessToken.userId(headers));
+  info(
+    @Param('questionId') questionId: string,
+    @ActiveUser('userId') userId: string,
+  ) {
+    return this.tutoringService.info(questionId, userId);
   }
 
   @ApiTags('Tutoring')
@@ -58,11 +62,11 @@ export class TutoringController {
   @ApiOperation(TutoringOperation.start)
   @ApiResponse(TutoringResponse.classroomInfo)
   @Get('start/:tutoringId')
-  start(@Param('tutoringId') tutoringId: string, @Headers() headers: Headers) {
-    return this.tutoringService.startTutoring(
-      AccessToken.userId(headers),
-      tutoringId,
-    );
+  start(
+    @Param('tutoringId') tutoringId: string,
+    @ActiveUser('userId') userId: string,
+  ) {
+    return this.tutoringService.startTutoring(userId, tutoringId);
   }
 
   @ApiTags('Teacher')
@@ -71,12 +75,9 @@ export class TutoringController {
   @Get('decline/:tutoringId')
   decline(
     @Param('tutoringId') chattingId: string,
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId: string,
   ) {
-    return this.tutoringService.decline(
-      chattingId,
-      AccessToken.userId(headers),
-    );
+    return this.tutoringService.decline(chattingId, userId);
   }
 
   @ApiBearerAuth('Authorization')
@@ -100,10 +101,10 @@ export class TutoringController {
   createReview(
     @Param('tutoringId') tutoringId: string,
     @Body() createReviewDto: CreateReviewDto,
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId: string,
   ) {
     return this.tutoringService.createReview(
-      AccessToken.userId(headers),
+      userId,
       tutoringId,
       createReviewDto,
     );
@@ -114,8 +115,8 @@ export class TutoringController {
   @ApiOperation(UserOperation.tutoringList)
   @Get('list')
   @ApiResponse(UserResponse.tutoringList)
-  tutoringList(@Headers() headers: Headers) {
-    return this.tutoringService.tutoringList(AccessToken.userId(headers));
+  tutoringList(@ActiveUser('userId') userId: string) {
+    return this.tutoringService.tutoringList(userId);
   }
 
   @ApiTags('Teacher')
@@ -124,7 +125,7 @@ export class TutoringController {
   @ApiOperation(TeacherOperation.reviewList)
   @Get('review/list/:teacherId')
   reviewList(
-    @Headers() headers: Headers,
+    @ActiveUser('userId') userId: string,
     @Param('teacherId') teacherId: string,
   ) {
     return this.tutoringService.reviewList(teacherId);

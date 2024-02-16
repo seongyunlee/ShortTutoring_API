@@ -1,12 +1,10 @@
 import { dynamooseModule } from '../config.dynamoose';
-import { UserRepository } from '../user/user.repository';
 import { AuthController } from './auth.controller';
 import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { UploadModule } from "../upload/upload.module";
 
 @Module({
   imports: [

@@ -225,14 +225,11 @@ export class UserService {
     }
   }
 
-  async withdraw(userId: string, token: string) {
-    const stToken = token.split(' ')[1];
-    const decoded = this.authRepository.decodeJwt(stToken);
-
+  async withdraw(userId: string, authId: string, authVendor: string) {
     try {
       await this.userRepository.get(userId);
       await this.userRepository.delete(userId);
-      await this.authRepository.delete(decoded.vendor, decoded.authId);
+      await this.authRepository.delete(authVendor, authId);
       return new Success('회원 탈퇴가 성공적으로 진행되었습니다.', null);
     } catch (error) {
       return new Fail(error.message);
