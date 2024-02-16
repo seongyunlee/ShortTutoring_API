@@ -1,8 +1,8 @@
-import { AccessToken } from '../auth/entities/auth.entity';
+import { ActiveUser } from '../common/decorators/active-user.decorator';
 import { UserOperation } from '../user/descriptions/user.operation';
 import { UserResponse } from '../user/descriptions/user.response';
 import { OnlineService } from './online.service';
-import { Controller, Get, Headers } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -19,7 +19,7 @@ export class OnlineController {
   @ApiOperation(UserOperation.onlineTeacher)
   @ApiResponse(UserResponse.onlineTeacher)
   @Get('user/list/teacher/online')
-  getOnlineTeachers(@Headers() headers: Headers) {
-    return this.onlineService.getOnlineTeachers(AccessToken.userId(headers));
+  getOnlineTeachers(@ActiveUser('userId') userId: string) {
+    return this.onlineService.getOnlineTeachers(userId);
   }
 }
