@@ -18,10 +18,17 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { DynamooseModule } from 'nestjs-dynamoose';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
     DynamooseModule.forRootAsync({ useClass: DynamooseConfig }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: { target: 'pino-pretty' },
+        level: 'debug',
+      },
+    }),
     AuthModule,
     UserModule,
     QuestionModule,
