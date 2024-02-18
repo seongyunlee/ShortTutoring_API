@@ -3,7 +3,7 @@ import { ChattingService } from '../chatting/chatting.service';
 import { FcmService } from '../fcm/fcm.service';
 import { RedisRepository } from '../redis/redis.repository';
 import { SocketService } from './socket.service';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import {
   SubscribeMessage,
   WebSocketGateway,
@@ -17,6 +17,7 @@ import { Server } from 'socket.io';
 export class SocketGateway {
   @WebSocketServer()
   server: Server;
+  private readonly logger = new Logger(SocketGateway.name);
 
   constructor(
     private readonly redisRepository: RedisRepository,
@@ -126,12 +127,12 @@ export class SocketGateway {
   @SubscribeMessage('debug')
   async handleDebug() {
     try {
-      console.log(this.server.sockets.adapter.rooms);
+      this.logger.debug(this.server.sockets.adapter.rooms);
       return this.redisRepository.getAllKeys();
     } catch (error) {
       const message = `디버깅에 실패했습니다. ${error.message}`;
 
-      console.log(message);
+      this.logger.debug(message);
       //await socketErrorWebhook.send(message);
 
       return new Error('디버깅에 실패했습니다.');

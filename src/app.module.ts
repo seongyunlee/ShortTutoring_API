@@ -13,17 +13,33 @@ import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { utilities, WinstonModule } from 'nest-winston';
 import { DynamooseModule } from 'nestjs-dynamoose';
-import { LoggerModule } from 'nestjs-pino';
+import * as process from 'process';
+import * as winston from 'winston';
+import * as WinstonCloudwatch from 'winston-cloudwatch';
 
 @Module({
   imports: [
     DynamooseModule.forRootAsync({ useClass: DynamooseConfig }),
-    LoggerModule.forRoot({
-      pinoHttp: {
-        transport: { target: 'pino-pretty' },
-        level: 'debug',
-      },
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          level: process.env.NODE_ENV === 'production' ? 'error' : 'debug',
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            utilities.format.nestLike('Nest', { prettyPrint: true }),
+          ),
+        }),
+        new WinstonCloudwatch({
+          level: 'info',
+          logGroupName: 'short-tutoring',
+          logStreamName: 'short-tutoring',
+          awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          awsRegion: process.env.AWS_REGION,
+          awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
+        }),
+      ],
     }),
     AuthModule,
     UserModule,

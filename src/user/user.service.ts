@@ -6,12 +6,14 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.interface';
 import { UserRepository } from './user.repository';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MessageBuilder } from 'discord-webhook-node';
 import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly userRepository: UserRepository,
@@ -155,8 +157,10 @@ export class UserService {
     try {
       const user: User = await this.userRepository.get(userId);
       if (user.role === 'teacher') {
-        user.rating = await this.getTeacherRating(userId);
+        user.rating = this.getTeacherRating(userId);
       }
+
+      this.logger.debug(user);
 
       return new Success('나의 프로필을 성공적으로 조회했습니다.', user);
     } catch (error) {

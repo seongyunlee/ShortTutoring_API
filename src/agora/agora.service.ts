@@ -1,11 +1,13 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RtcRole, RtcTokenBuilder } from 'agora-access-token';
 import * as process from 'process';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AgoraService {
+  private readonly logger = new Logger(AgoraService.name);
+
   constructor(private readonly httpService: HttpService) {}
 
   async makeRtcToken(
@@ -201,7 +203,7 @@ export class AgoraService {
         tutoringId: tutoringId,
       };
     } catch (error) {
-      console.log(error);
+      this.logger.debug(error);
     }
   }
 
@@ -252,7 +254,7 @@ export class AgoraService {
         tutoringId: tutoringId,
       };
     } catch (error) {
-      console.log(error);
+      this.logger.debug(error);
       return {
         uid: `${await this.djb2Hash(tutoringId)}`,
         tutoringId: tutoringId,

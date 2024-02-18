@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
 import { MessageBuilder } from 'discord-webhook-node';
 import * as process from 'process';
 
 @Injectable()
 export class UploadService {
+  private readonly logger = new Logger(UploadService.name);
+
   /**
    base64로 인코딩된 이미지를 S3에 업로드합니다.
    @param path S3에 업로드할 경로
@@ -41,7 +43,7 @@ export class UploadService {
 
       return imagePath;
     } catch (error) {
-      console.log(error);
+      this.logger.debug(error);
       throw Error('이미지 업로드에 실패했습니다.');
     }
   }
@@ -67,7 +69,7 @@ export class UploadService {
         .filter((fileName) => fileName.endsWith('.m3u8'))
         .map((fileName) => `${url}/${fileName}`);
     } catch (error) {
-      console.log(error);
+      this.logger.debug(error);
       throw error;
     }
   }
