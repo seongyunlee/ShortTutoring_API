@@ -28,7 +28,7 @@ import * as WinstonCloudwatch from 'winston-cloudwatch';
           level: process.env.NODE_ENV === 'production' ? 'error' : 'debug',
           format: winston.format.combine(
             winston.format.timestamp(),
-            utilities.format.nestLike('Nest', { prettyPrint: true }),
+            utilities.format.nestLike('Nest'),
           ),
         }),
         new WinstonCloudwatch({
