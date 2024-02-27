@@ -4,11 +4,13 @@ import {
   CreateUserDto,
 } from './dto/create-user.dto';
 import { User, UserKey } from './entities/user.interface';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 
 @Injectable()
 export class UserRepository {
+  private readonly logger = new Logger(UserRepository.name);
+
   constructor(
     @InjectModel('User') private readonly userModel: Model<User, UserKey>,
   ) {}
@@ -134,7 +136,7 @@ export class UserRepository {
         { id: teacherId },
         { followers: teacher.followers },
       );
-      console.log('follower', teacher.followers);
+      this.logger.debug('follower', teacher.followers);
 
       student.following.push(teacherId);
       await this.userModel.update(

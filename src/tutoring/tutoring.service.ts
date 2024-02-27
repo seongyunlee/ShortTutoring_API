@@ -17,10 +17,12 @@ import { UserRepository } from '../user/user.repository';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ClassroomInfo, TutoringInfo } from './entities/tutoring.entity';
 import { TutoringRepository } from './tutoring.repository';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class TutoringService {
+  private readonly logger = new Logger(TutoringService.name);
+
   constructor(
     private readonly tutoringRepository: TutoringRepository,
     private readonly questionRepository: QuestionRepository,
@@ -80,14 +82,14 @@ export class TutoringService {
               files,
             );
           } catch (error) {
-            console.log(error);
+            this.logger.debug(error);
           }
         })
-        .catch((error) => console.log(error));
+        .catch((error) => this.logger.debug(error));
 
       return new Success('과외가 종료되었습니다.', { tutoringId });
     } catch (error) {
-      console.log(error);
+      this.logger.debug(error);
       return new Fail(`과외를 종료할 수 없습니다.`);
     }
   }
@@ -244,7 +246,7 @@ export class TutoringService {
 
       return new Success('과외를 거절했습니다.');
     } catch (e) {
-      console.log(e);
+      this.logger.debug(e);
       return new Fail('과외 거절에 실패했습니다.');
     }
   }
@@ -291,14 +293,14 @@ export class TutoringService {
       this.agoraService
         .startRecord(whiteBoardInfo, roomInfo.rtcChannel, tutoringId)
         .then((result) => {
-          console.log(result, 'result', tutoringId, 'tutoringId');
+          this.logger.debug(result, 'result', tutoringId, 'tutoringId');
           this.tutoringRepository.setRecordingInfo(
             result.tutoringId,
             result.resourceId,
             result.sid,
           );
         })
-        .catch((e) => console.log(e));
+        .catch((e) => this.logger.debug(e));
 
       return new Success('과외가 시작되었습니다.', roomInfo);
     } catch (error) {
@@ -357,7 +359,7 @@ export class TutoringService {
 
       return new Success('과외 내역을 가져왔습니다.', result);
     } catch (error) {
-      console.log(error);
+      this.logger.debug(error);
       return new Fail('과외 내역을 가져오는데 실패했습니다.');
     }
   }
@@ -409,7 +411,7 @@ export class TutoringService {
           bio: user.bio,
           rating: 5,
         };
-        console.log(teacher);
+        this.logger.debug(teacher);
         return teacher;
       } else if (user.role == 'student') {
         const student: StudentListing = {
