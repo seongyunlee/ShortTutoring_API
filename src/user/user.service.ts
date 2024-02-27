@@ -1,5 +1,5 @@
 import { AuthRepository } from '../auth/auth.repository';
-import { Fail, Success } from '../response';
+import { Success } from '../response';
 import { UploadService } from '../upload/upload.service';
 import { CreateStudentDto, CreateTeacherDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -29,41 +29,37 @@ export class UserService {
     const vendor = createStudentDto.vendor;
     const accessToken = `Bearer ${createStudentDto.accessToken}`;
 
-    try {
-      /*
-      const authId = await this.authRepository.getAuthIdFromAccessToken(
-        vendor,
-        accessToken,
-      );*/
+    /*
+    const authId = await this.authRepository.getAuthIdFromAccessToken(
+      vendor,
+      accessToken,
+    );*/
 
-      const userId = uuid();
-      const authId = userId;
-      await this.authRepository.createAuth(vendor, authId, userId, 'student');
-      const token = await this.authRepository.signJwt(
-        vendor,
-        authId,
-        userId,
-        'student',
-      );
-      const user = await this.userRepository.create(
-        userId,
-        createStudentDto,
-        'student',
-      );
+    const userId = uuid();
+    const authId = userId;
+    await this.authRepository.createAuth(vendor, authId, userId, 'student');
+    const token = await this.authRepository.signJwt(
+      vendor,
+      authId,
+      userId,
+      'student',
+    );
+    const user = await this.userRepository.create(
+      userId,
+      createStudentDto,
+      'student',
+    );
 
-      const embed = new MessageBuilder()
-        .setTitle('회원가입')
-        .setColor(Number('#00ff00'))
-        .setImage(
-          `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
-        )
-        .setDescription(`${user.name}님이 회원가입했습니다.`);
-      //await webhook.send(embed);
+    const embed = new MessageBuilder()
+      .setTitle('회원가입')
+      .setColor(Number('#00ff00'))
+      .setImage(
+        `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
+      )
+      .setDescription(`${user.name}님이 회원가입했습니다.`);
+    //await webhook.send(embed);
 
-      return new Success('성공적으로 회원가입했습니다.', { token });
-    } catch (error) {
-      return new Fail(error.message);
-    }
+    return new Success('성공적으로 회원가입했습니다.', { token });
   }
 
   /**
@@ -75,42 +71,38 @@ export class UserService {
     const vendor = createTeacherDto.vendor;
     const accessToken = `Bearer ${createTeacherDto.accessToken}`;
 
-    try {
-      /*
-      const oauthId = await this.authRepository.getAuthIdFromAccessToken(
-        vendor,
-        accessToken,
-      );*/
+    /*
+    const oauthId = await this.authRepository.getAuthIdFromAccessToken(
+      vendor,
+      accessToken,
+    );*/
 
-      const userId = uuid();
-      const oauthId = userId;
+    const userId = uuid();
+    const oauthId = userId;
 
-      await this.authRepository.createAuth(vendor, oauthId, userId, 'teacher');
-      const token = await this.authRepository.signJwt(
-        vendor,
-        oauthId,
-        userId,
-        'teacher',
-      );
-      const user = await this.userRepository.create(
-        userId,
-        createTeacherDto,
-        'teacher',
-      );
+    await this.authRepository.createAuth(vendor, oauthId, userId, 'teacher');
+    const token = await this.authRepository.signJwt(
+      vendor,
+      oauthId,
+      userId,
+      'teacher',
+    );
+    const user = await this.userRepository.create(
+      userId,
+      createTeacherDto,
+      'teacher',
+    );
 
-      const embed = new MessageBuilder()
-        .setTitle('회원가입')
-        .setColor(Number('#00ff00'))
-        .setImage(
-          `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
-        )
-        .setDescription(`${user.name}님이 회원가입했습니다.`);
-      //await webhook.send(embed);
+    const embed = new MessageBuilder()
+      .setTitle('회원가입')
+      .setColor(Number('#00ff00'))
+      .setImage(
+        `https://short-tutoring.s3.ap-northeast-2.amazonaws.com/default/profile-img/ic_profile_${user.profileImage}.png`,
+      )
+      .setDescription(`${user.name}님이 회원가입했습니다.`);
+    //await webhook.send(embed);
 
-      return new Success('성공적으로 회원가입했습니다.', { token });
-    } catch (error) {
-      return new Fail(error.message);
-    }
+    return new Success('성공적으로 회원가입했습니다.', { token });
   }
 
   /**
@@ -120,52 +112,45 @@ export class UserService {
    * @param loginUserDto
    */
   async login(loginUserDto: LoginUserDto) {
-    try {
-      /*
-      const authId = await this.authRepository.getAuthIdFromAccessToken(
-        loginUserDto.vendor,
-        `Bearer ${loginUserDto.accessToken}`,
-      );
-       */
-      const authId = loginUserDto.accessToken;
+    /*
+    const authId = await this.authRepository.getAuthIdFromAccessToken(
+      loginUserDto.vendor,
+      `Bearer ${loginUserDto.accessToken}`,
+    );
+     */
+    const authId = loginUserDto.accessToken;
 
-      const userId = loginUserDto.accessToken;
+    const userId = loginUserDto.accessToken;
 
-      const user = await this.userRepository.get(userId);
+    const user = await this.userRepository.get(userId);
 
-      const token = await this.authRepository.signJwt(
-        loginUserDto.vendor,
-        authId,
-        userId,
-        user.role,
-      );
+    const token = await this.authRepository.signJwt(
+      loginUserDto.vendor,
+      authId,
+      userId,
+      user.role,
+    );
 
-      return new Success('성공적으로 로그인했습니다.', {
-        role: user.role,
-        token,
-      });
-    } catch (error) {
-      return new Fail(error.message);
-    }
+    return new Success('성공적으로 로그인했습니다.', {
+      role: user.role,
+      token,
+    });
   }
 
   /**
    * 내 프로필을 조회합니다.
    * @returns User 나의 프로필
    */
-  async profile(userId: string) {
-    try {
-      const user: User = await this.userRepository.get(userId);
-      if (user.role === 'teacher') {
-        user.rating = this.getTeacherRating(userId);
-      }
-
-      this.logger.debug(user);
-
-      return new Success('나의 프로필을 성공적으로 조회했습니다.', user);
-    } catch (error) {
-      return new Fail(error.message);
+  async profile(userId: string): Promise<User> {
+    const user: User = await this.userRepository.get(userId);
+    if (user.role === 'teacher') {
+      user.rating = this.getTeacherRating(userId);
     }
+
+    this.logger.debug(userId);
+    this.logger.debug(user);
+
+    return user;
   }
 
   getTeacherRating(userId: string) {
@@ -204,12 +189,8 @@ export class UserService {
       profileImage,
     } as User;
 
-    try {
-      const user = await this.userRepository.update(userId, updateUser);
-      return new Success('성공적으로 사용자 프로필을 업데이트했습니다.', user);
-    } catch (error) {
-      return new Fail(error.message);
-    }
+    const user = await this.userRepository.update(userId, updateUser);
+    return new Success('성공적으로 사용자 프로필을 업데이트했습니다.', user);
   }
 
   /**
@@ -217,27 +198,23 @@ export class UserService {
    * @param userId
    */
   async otherProfile(userId: string) {
-    try {
-      const user = await this.userRepository.getOther(userId);
-      if (user.role === 'teacher') {
-        user.rating = await this.getTeacherRating(userId);
-      }
-
-      return new Success('사용자 프로필을 성공적으로 가져왔습니다.', user);
-    } catch (error) {
-      return new Fail(error.message);
+    const user: any = await this.userRepository.getOther(userId);
+    if (user.role === 'teacher') {
+      user.rating = this.getTeacherRating(userId);
     }
+
+    return user;
   }
 
-  async withdraw(userId: string, authId: string, authVendor: string) {
-    try {
-      await this.userRepository.get(userId);
-      await this.userRepository.delete(userId);
-      await this.authRepository.delete(authVendor, authId);
-      return new Success('회원 탈퇴가 성공적으로 진행되었습니다.', null);
-    } catch (error) {
-      return new Fail(error.message);
-    }
+  async withdraw(
+    userId: string,
+    authId: string,
+    authVendor: string,
+  ): Promise<boolean> {
+    await this.userRepository.get(userId);
+    await this.userRepository.delete(userId);
+    await this.authRepository.delete(authVendor, authId);
+    return true;
   }
 
   getTutoringCntOfTeacher(userId: string) {
@@ -246,30 +223,22 @@ export class UserService {
   }
 
   async getBestTeachers(userId: string) {
-    try {
-      await this.userRepository.get(userId);
-      const bestTeachers = await this.userRepository.getTeachers();
-      for (const teacher of bestTeachers) {
-        teacher.rating = await this.getTeacherRating(teacher.id);
-      }
-
-      bestTeachers.sort((a, b) => b.rating - a.rating);
-
-      return new Success(
-        '성공적으로 최고의 선생님들을 가져왔습니다.',
-        bestTeachers,
-      );
-    } catch (error) {
-      return new Fail(error.message);
+    await this.userRepository.get(userId);
+    const bestTeachers = await this.userRepository.getTeachers();
+    for (const teacher of bestTeachers) {
+      teacher.rating = await this.getTeacherRating(teacher.id);
     }
+
+    bestTeachers.sort((a, b) => b.rating - a.rating);
+
+    return new Success(
+      '성공적으로 최고의 선생님들을 가져왔습니다.',
+      bestTeachers,
+    );
   }
 
   async receiveFreeCoin(userId: string) {
-    try {
-      await this.userRepository.receiveFreeCoin(userId);
-      return new Success('성공적으로 무료 코인을 지급받았습니다.');
-    } catch (error) {
-      return new Fail(error.message);
-    }
+    await this.userRepository.receiveFreeCoin(userId);
+    return new Success('성공적으로 무료 코인을 지급받았습니다.');
   }
 }

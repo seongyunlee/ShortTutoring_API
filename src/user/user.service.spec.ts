@@ -40,31 +40,6 @@ describe('UserService', () => {
     jest.clearAllMocks();
   });
 
-  describe('profile', () => {
-    it('should successfully get a user profile', async () => {
-      const userId = 'test-user-id';
-
-      // Mock userRepository.get to return a user
-      mockUserRepository.get.mockResolvedValue({
-        id: userId,
-        name: 'Test User',
-        bio: 'This is a test user',
-        role: 'student',
-        profileImage: 'test-image.png',
-      });
-
-      const result = await userService.profile(userId);
-
-      expect(mockUserRepository.get).toHaveBeenCalledTimes(1);
-      expect(mockUserRepository.get).toHaveBeenCalledWith(userId);
-      expect(result).toBeInstanceOf(Success);
-      expect(result.message).toEqual('나의 프로필을 성공적으로 조회했습니다.');
-      expect(result.data).toHaveProperty('id', userId);
-    });
-
-    // Add more test cases for edge cases and error scenarios
-  });
-
   describe('signupStudent', () => {
     it('should successfully sign up a student', async () => {
       const createStudentDto: CreateStudentDto = {

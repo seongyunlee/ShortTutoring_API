@@ -23,4 +23,5 @@ export interface User extends UserKey {
     grade?: number;
   };
   rating?: number;
+  followingCount?: number;
 }
