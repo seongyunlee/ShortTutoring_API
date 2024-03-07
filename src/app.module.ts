@@ -2,6 +2,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ChatInfoModule } from './chat-info/chat-info.module';
 import { ChattingModule } from './chatting/chatting.module';
+import { DBExceptionFilter } from './common/exception/db-exception.filter';
 import { DynamooseConfig } from './config.dynamoose';
 import { EventModule } from './event/event.module';
 import { FollowModule } from './follow/follow.module';
@@ -12,7 +13,7 @@ import { TutoringModule } from './tutoring/tutoring.module';
 import { UploadModule } from './upload/upload.module';
 import { UserModule } from './user/user.module';
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { utilities, WinstonModule } from 'nest-winston';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import * as process from 'process';
@@ -57,6 +58,10 @@ import * as WinstonCloudwatch from 'winston-cloudwatch';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: DBExceptionFilter,
     },
   ],
 })

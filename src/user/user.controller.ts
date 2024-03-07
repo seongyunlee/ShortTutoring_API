@@ -7,7 +7,16 @@ import { CreateStudentDto, CreateTeacherDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
-import { Body, Controller, Get, Headers, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpException,
+  HttpStatus,
+  Param,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -100,6 +109,7 @@ export class UserController {
   @ApiBearerAuth('Authorization')
   @Get('user/receiveFreeCoin')
   receiveFreeCoin(@ActiveUser('userId') userId: string) {
+    throw new HttpException('가짜 에러 터뜨리기', HttpStatus.BAD_REQUEST);
     return this.userService.receiveFreeCoin(userId);
   }
 }

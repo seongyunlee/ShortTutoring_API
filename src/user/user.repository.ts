@@ -1,3 +1,4 @@
+import { DBError } from '../common/error/db-fail.error';
 import {
   CreateStudentDto,
   CreateTeacherDto,
@@ -49,7 +50,7 @@ export class UserRepository {
     try {
       return await this.userModel.create(user);
     } catch (error) {
-      throw new Error('사용자를 생성할 수 없습니다.');
+      throw new DBError('사용자를 생성할 수 없습니다.');
     }
   }
 
@@ -58,7 +59,7 @@ export class UserRepository {
       id: userId,
     });
     if (user === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
 
     return user;
@@ -69,7 +70,7 @@ export class UserRepository {
       id: userId,
     });
     if (user === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
 
     try {
@@ -80,14 +81,14 @@ export class UserRepository {
         updateUser,
       );
     } catch (error) {
-      throw new Error('사용자를 수정할 수 없습니다.');
+      throw new DBError('사용자를 수정할 수 없습니다.');
     }
   }
 
   async usersInfo(userIds: string[]) {
     const users = await this.userModel.batchGet(userIds.map((id) => ({ id })));
     if (users === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
     return users;
   }
@@ -97,7 +98,7 @@ export class UserRepository {
       id: userId,
     });
     if (user === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
 
     try {
@@ -105,7 +106,7 @@ export class UserRepository {
         id: userId,
       });
     } catch (error) {
-      throw new Error('사용자를 삭제할 수 없습니다.');
+      throw new DBError('사용자를 삭제할 수 없습니다.');
     }
   }
 
@@ -114,20 +115,20 @@ export class UserRepository {
       id: teacherId,
     })) as User;
     if (teacher === undefined) {
-      throw new Error('선생님을 찾을 수 없습니다.');
+      throw new DBError('선생님을 찾을 수 없습니다.');
     } else if (teacher.role !== 'teacher') {
-      throw new Error('학생을 팔로우할 수 없습니다.');
+      throw new DBError('학생을 팔로우할 수 없습니다.');
     } else if (teacher.followers.includes(studentId)) {
-      throw new Error('이미 팔로우 중입니다.');
+      throw new DBError('이미 팔로우 중입니다.');
     }
 
     const student: User = (await this.userModel.get({
       id: studentId,
     })) as User;
     if (student === undefined) {
-      throw new Error('학생을 찾을 수 없습니다.');
+      throw new DBError('학생을 찾을 수 없습니다.');
     } else if (student.role !== 'student') {
-      throw new Error('선생님은 팔로우할 수 없습니다.');
+      throw new DBError('선생님은 팔로우할 수 없습니다.');
     }
 
     try {
@@ -146,7 +147,7 @@ export class UserRepository {
         { following: student.following },
       );
     } catch (error) {
-      throw new Error('팔로우를 할 수 없습니다.');
+      throw new DBError('팔로우를 할 수 없습니다.');
     }
   }
 
@@ -155,24 +156,24 @@ export class UserRepository {
       id: teacherId,
     })) as User;
     if (teacher === undefined) {
-      throw new Error('선생님을 찾을 수 없습니다.');
+      throw new DBError('선생님을 찾을 수 없습니다.');
     } else if (teacher.role !== 'teacher') {
-      throw new Error('학생을 팔로우할 수 없습니다.');
+      throw new DBError('학생을 팔로우할 수 없습니다.');
     } else if (teacher.followers.includes(studentId) === false) {
-      throw new Error('팔로우 중이 아닙니다.');
+      throw new DBError('팔로우 중이 아닙니다.');
     }
 
     const student: User = (await this.userModel.get({
       id: studentId,
     })) as User;
     if (student === undefined) {
-      throw new Error('학생을 찾을 수 없습니다.');
+      throw new DBError('학생을 찾을 수 없습니다.');
     } else if (student.role !== 'student') {
-      throw new Error('선생님은 팔로우할 수 없습니다.');
+      throw new DBError('선생님은 팔로우할 수 없습니다.');
     }
 
     if (teacher.followers.includes(studentId) === false) {
-      throw new Error('팔로우 중이 아닙니다.');
+      throw new DBError('팔로우 중이 아닙니다.');
     }
     try {
       teacher.followers = teacher.followers.filter(
@@ -195,14 +196,14 @@ export class UserRepository {
         { following: student.following },
       );
     } catch (error) {
-      throw new Error('언팔로우를 할 수 없습니다.');
+      throw new DBError('언팔로우를 할 수 없습니다.');
     }
   }
 
   async following(studentId: string) {
     const student: User = await this.get(studentId);
     if (student === undefined) {
-      throw new Error('학생을 찾을 수 없습니다.');
+      throw new DBError('학생을 찾을 수 없습니다.');
     }
 
     try {
@@ -212,14 +213,14 @@ export class UserRepository {
       }
       return following;
     } catch (error) {
-      throw new Error('팔로잉 목록을 가져올 수 없습니다.');
+      throw new DBError('팔로잉 목록을 가져올 수 없습니다.');
     }
   }
 
   async followers(teacherId: string) {
     const teacher: User = await this.get(teacherId);
     if (teacher === undefined) {
-      throw new Error('선생님을 찾을 수 없습니다.');
+      throw new DBError('선생님을 찾을 수 없습니다.');
     }
 
     try {
@@ -229,14 +230,14 @@ export class UserRepository {
       }
       return followers;
     } catch (error) {
-      throw new Error('팔로워 목록을 가져올 수 없습니다.');
+      throw new DBError('팔로워 목록을 가져올 수 없습니다.');
     }
   }
 
   async getOther(userId: string) {
     const user: User = await this.userModel.get({ id: userId });
     if (user === undefined) {
-      return undefined;
+      throw new DBError('사용자를 찾을 수 없습니다.');
     } else {
       return {
         id: user.id,
@@ -261,7 +262,7 @@ export class UserRepository {
         { participatingChattingRooms: user.participatingChattingRooms },
       );
     } catch (error) {
-      throw new Error('채팅방을 추가할 수 없습니다.');
+      throw new DBError('채팅방을 추가할 수 없습니다.');
     }
   }
 
@@ -283,7 +284,7 @@ export class UserRepository {
   async receiveFreeCoin(userId: string) {
     const user: User = await this.get(userId);
     if (user === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
 
     const now = new Date();
@@ -292,7 +293,7 @@ export class UserRepository {
       now.getMonth() == user.coin.lastReceivedFreeCoinAt.getMonth() &&
       now.getDate() == user.coin.lastReceivedFreeCoinAt.getDate()
     ) {
-      throw new Error('오늘은 이미 무료 코인을 받았습니다.');
+      throw new DBError('오늘은 이미 무료 코인을 받았습니다.');
     }
 
     try {
@@ -300,7 +301,7 @@ export class UserRepository {
       user.coin.lastReceivedFreeCoinAt = now;
       await this.userModel.update({ id: userId }, { coin: user.coin });
     } catch (error) {
-      throw new Error('무료 코인을 받을 수 없습니다.');
+      throw new DBError('무료 코인을 받을 수 없습니다.');
     }
   }
 
@@ -311,7 +312,7 @@ export class UserRepository {
   async getCoin(userId: string) {
     const user: User = await this.get(userId);
     if (user === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
 
     return user.coin.amount;
@@ -324,18 +325,18 @@ export class UserRepository {
   async useCoin(userId: string) {
     const user: User = await this.get(userId);
     if (user === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
 
     if (user.coin.amount < 1) {
-      throw new Error('코인이 부족합니다.');
+      throw new DBError('코인이 부족합니다.');
     }
     // TODO : 동시성 이슈 발생 가능
     try {
       user.coin.amount -= 1;
       await this.userModel.update({ id: userId }, { coin: user.coin });
     } catch (error) {
-      throw new Error('코인을 사용할 수 없습니다.');
+      throw new DBError('코인을 사용할 수 없습니다.');
     }
   }
 
@@ -346,7 +347,7 @@ export class UserRepository {
   async earnCoin(userId: string) {
     const user: User = await this.get(userId);
     if (user === undefined) {
-      throw new Error('사용자를 찾을 수 없습니다.');
+      throw new DBError('사용자를 찾을 수 없습니다.');
     }
     // TODO : 동시성 이슈 발생 가능
     const coin = user.coin;
@@ -364,7 +365,7 @@ export class UserRepository {
         })
         .exec();
     } catch (error) {
-      throw new Error('선생님 목록을 가져올 수 없습니다.');
+      throw new DBError('선생님 목록을 가져올 수 없습니다.');
     }
   }
 }
